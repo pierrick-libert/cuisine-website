@@ -1,0 +1,4 @@
+<section class="phx-hero">
+  <p>Recipe ID: <%= @id %></p>
+  <p>Lang: <%= @lang %></p>
+</section>

@@ -1,0 +1,57 @@
+<%= form_for @conn, Routes.auth_path(@conn, :create), [
+  as: :user,
+  class: 'flex-1 flex flex-col h-full'
+], fn f -> %>
+<div class="flex-1 h-full bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div class="sm:mx-auto sm:w-full sm:max-w-md">
+    <img class="mx-auto h-12 w-auto" src="/images/logo.png" alt="Workflow" style="filter: invert(1)">
+    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+      <%= gettext("Login in") %>
+    </h2>
+  </div>
+
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md mb-24">
+    <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+
+      <%= if @error_message do %>
+        <div class="alert alert-danger">
+          <p><%= @error_message %></p>
+        </div>
+      <% end %>
+
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">
+            <%= label f, :email, gettext("Email") %>
+          </label>
+          <div class="mt-1">
+            <%= email_input f, :email, required: true,
+                placeholder: gettext("Email"),
+                class: "input"  %>
+          </div>
+        </div>
+
+        <div>
+          <%= label f, :password, gettext("Password"),
+            class: "block text-sm font-medium text-gray-700 mt-5" %>
+          <div class="mt-1">
+            <%= password_input f, :password,
+            placeholder: gettext("Password"),
+            required: true, class: "input" %>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between mt-5 mb-5">
+          <div class="flex items-center">
+            <%= label f, :remember_me, gettext("Remember me"),
+              class: "ml-2 block text-sm text-gray-900" %>&nbsp;
+            <%= checkbox f, :remember_me, class: "h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" %>
+          </div>
+        <div>
+          <%= submit gettext("Sign in"),
+              class: "w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        </div>
+
+    </div>
+  </div>
+</div>
+<% end %>
