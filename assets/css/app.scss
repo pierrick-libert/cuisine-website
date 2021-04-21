@@ -1,6 +1,21 @@
 /* This file is for your main application css. */
 @import "./phoenix.css";
 
+/* List template */
+.container-list {
+  .recipes {
+    .recipe {
+      width: 150px;
+      display: inline-block;
+      height: 150px;
+      // box shadow
+
+    }
+  }
+}
+
+/* Three columns views */
+
 /* Alerts and form errors */
 .alert {
   padding: 15px;

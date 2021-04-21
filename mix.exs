@@ -36,6 +36,8 @@ defmodule CuisineWebsite.MixProject do
       {:bcrypt_elixir, "~> 2.0"},
       {:phoenix, "~> 1.5.7"},
       {:phoenix_ecto, "~> 4.1"},
+      {:phoenix_live_view, "~> 0.15.4"},
+      {:floki, ">= 0.30.0", only: :test}
       {:ecto_sql, "~> 3.4"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 2.11"},

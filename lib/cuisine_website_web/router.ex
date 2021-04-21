@@ -1,6 +1,10 @@
 defmodule CuisineWebsiteWeb.Router do
   use CuisineWebsiteWeb, :router
 
+  import Phoenix.LiveView.Router
+  import Phoenix.LiveView.Helpers
+  import Phoenix.LiveDashboard.Router
+
   ## Admin Web App
   import CuisineWebsiteWeb.AuthController
 
@@ -8,6 +12,8 @@ defmodule CuisineWebsiteWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
+    plug :fetch_live_flash
+    plug :put_root_layout, {CuisineWebsiteWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
@@ -25,9 +31,9 @@ defmodule CuisineWebsiteWeb.Router do
 
     get "/", HomeController, :index
     get "/tags", TagController, :show_all
-    get "/recipe/tag/:tag", RecipeController, :show_by_tag
+    # get "/recipe/tag/:tag", RecipeController, :show_by_tag
     get "/recipe/:id", RecipeController, :show
-    get "/recipes", RecipeController, :show_all
+    live "/recipes", RecipeLive, :index
   end
 
   scope "/admin", CuisineWebsiteWeb do

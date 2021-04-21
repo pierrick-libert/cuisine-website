@@ -1,3 +1,10 @@
-<section class="phx-hero">
-  List html
+<section class="container-list">
+  <div class="filters">
+    <select class="tags">
+    <%= for tag <- @tags do %>
+      <option value="<%= tag.key %>" phx-click="recipes_by_tag" phx-value-tag="<%= tag.key %>">tag.name</option>
+    <% end %>
+    </select>
+  </div>
+  <%= live_render(@conn, CuisineWebsiteWeb.RecipeLive) %>
 </section>

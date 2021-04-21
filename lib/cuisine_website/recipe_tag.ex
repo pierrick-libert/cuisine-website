@@ -3,8 +3,8 @@ defmodule CuisineWebsite.RecipeTag do
   import Ecto.Changeset
 
   schema "recipe_tag" do
-    field :recipe_id, :id
-    field :tag_id, :id
+    belongs_to :recipe_id, CuisineWebsite.Recipe
+    belongs_to :tag_id, CuisineWebsite.Tag
 
     timestamps()
   end

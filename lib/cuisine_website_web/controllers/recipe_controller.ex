@@ -1,13 +1,6 @@
 defmodule CuisineWebsiteWeb.RecipeController do
   use CuisineWebsiteWeb, :controller
 
-  def show_by_tag(conn, %{"tag" => tag, "lang" => lang}) do
-    conn
-    |> assign(:tag, tag)
-    |> assign(:lang, lang)
-    |> render("list.html")
-  end
-
   def show(conn, %{"id" => id, "lang" => lang}) do
     conn
     |> assign(:id, id)
@@ -17,6 +10,7 @@ defmodule CuisineWebsiteWeb.RecipeController do
 
   def show_all(conn, _opts) do
     conn
+    |> assign(:recipes, [])
     |> render("list.html")
   end
 
