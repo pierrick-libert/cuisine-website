@@ -25,11 +25,14 @@ defmodule CuisineWebsiteWeb.TagController do
 
   def create(conn, %{"tag" => tag_params}) do
     conn
+    |> assign(:tag_params, tag_params)
     |> redirect(to: "/admin")
   end
 
   def update(conn, %{"id" => id, "tag" => tag_params}) do
     conn
+    |> assign(:id, id)
+    |> assign(:tag_params, tag_params)
     |> redirect(to: "/admin")
   end
 

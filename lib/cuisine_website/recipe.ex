@@ -27,15 +27,27 @@ defmodule CuisineWebsite.Recipe do
   end
 
   @doc """
+  Get all recipes
+  """
+  def get_recipes(),
+    do: Repo.all(from r in Recipe,
+      join: t in assoc(t, :tags),
+      join: l in assoc(r, :languages),
+      join: tl in assoc(t, :languages),
+      select: r,
+      preload: [tag_languages: tl, languages: l])
+
+  @doc """
   Get all recipes for a tag
   """
   def get_recipes_by_tag(tag),
     do: Repo.all(from r in Recipe,
       join: t in assoc(t, :tags),
       join: l in assoc(r, :languages),
+      join: tl in assoc(t, :languages),
       where: t.key == ^tag,
       select: r,
-      preload: [languages: l])
+      preload: [tag_languages: tl, languages: l])
 
   @doc """
   Get recipe by ID

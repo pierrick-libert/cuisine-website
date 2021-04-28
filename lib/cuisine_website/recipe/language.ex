@@ -5,6 +5,7 @@ defmodule CuisineWebsite.Recipe.Language do
   schema "recipe_languages" do
     field :html, :string
     field :lang, :string
+    field :title, :string
     belongs_to :recipe_id, CuisineWebsite.Recipe
 
     timestamps()

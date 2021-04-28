@@ -14,14 +14,14 @@ defmodule CuisineWebsiteWeb.RecipeLive do
     """
   end
 
-  def mount(_params, %{"current_user_id" => user_id}, socket) do
-    temperature = Thermostat.get_user_reading(user_id)
-    {:ok, assign(socket, :temperature, temperature)}
+  def mount(_params, %{}, socket) do
+    recipes = CuisineWebsite.Recipe.get_recipes()
+    {:ok, assign(socket, :recipes, recipes)}
   end
 
   def handle_event("recipes_by_tag", _value, socket) do
-    {:ok, new_temp} = Thermostat.inc_temperature(socket.assigns.id)
-    {:noreply, assign(socket, :temperature, new_temp)}
+    {:ok, recipes} = CuisineWebsite.Recipe.get_recipes_by_tag(socket.assigns.id)
+    {:noreply, assign(socket, :recipes, recipes)}
   end
 
 end
