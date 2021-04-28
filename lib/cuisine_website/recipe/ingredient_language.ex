@@ -5,7 +5,7 @@ defmodule CuisineWebsite.Recipe.IngredientLanguage do
   schema "recipe_ingredient_languages" do
     field :lang, :string
     field :name, :string
-    belongs_to :recipe_id, CuisineWebsite.Recipe
+    belongs_to :recipe, CuisineWebsite.Recipe
 
     has_many :groups, CuisineWebsite.Recipe.GroupIngredientLanguage
 

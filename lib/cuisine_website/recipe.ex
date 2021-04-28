@@ -13,7 +13,7 @@ defmodule CuisineWebsite.Recipe do
     has_many :languages, CuisineWebsite.Recipe.Language
     has_many :ingredients, CuisineWebsite.Recipe.IngredientLanguage
     has_many :recipe_tags, CuisineWebsite.RecipeTag
-    has_many :tags, through: [:recipe_tag, :tag]
+    many_to_many :tags, Tag, join_through: "recipe_tag"
 
     timestamps()
   end
@@ -31,7 +31,7 @@ defmodule CuisineWebsite.Recipe do
   """
   def get_recipes(),
     do: Repo.all(from r in Recipe,
-      join: t in assoc(t, :tags),
+      join: t in assoc(r, :tags),
       join: l in assoc(r, :languages),
       join: tl in assoc(t, :languages),
       select: r,
@@ -42,7 +42,7 @@ defmodule CuisineWebsite.Recipe do
   """
   def get_recipes_by_tag(tag),
     do: Repo.all(from r in Recipe,
-      join: t in assoc(t, :tags),
+      join: t in assoc(r, :tags),
       join: l in assoc(r, :languages),
       join: tl in assoc(t, :languages),
       where: t.key == ^tag,
@@ -53,7 +53,7 @@ defmodule CuisineWebsite.Recipe do
   Get recipe by ID
   """
   def get_recipe_by_id(recipe_id, lang),
-    do: Repo.all(from r in Recipe, recipe_id,
+    do: Repo.all(from r in Recipe,
       join: l in assoc(r, :languages),
       join: i in assoc(r, :ingredients),
       join: g in assoc(i, :groups),

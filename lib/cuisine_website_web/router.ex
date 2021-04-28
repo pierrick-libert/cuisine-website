@@ -55,7 +55,6 @@ defmodule CuisineWebsiteWeb.Router do
     get("/tag/:id", RecipeController, :get_update)
     post("/tag", TagController, :create)
     put("/tag/:id", TagController, :update)
-
   end
 
   scope "/admin", CuisineWebsiteWeb do
@@ -63,5 +62,4 @@ defmodule CuisineWebsiteWeb.Router do
 
     get("/logout", AuthController, :delete)
   end
-
 end
