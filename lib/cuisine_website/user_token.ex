@@ -61,5 +61,4 @@ defmodule CuisineWebsite.UserToken do
     |> NaiveDateTime.truncate(:second)
     |> NaiveDateTime.add(60 * 60 * 24 * validity_day)
   end
-
 end

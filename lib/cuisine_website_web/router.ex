@@ -2,8 +2,6 @@ defmodule CuisineWebsiteWeb.Router do
   use CuisineWebsiteWeb, :router
 
   import Phoenix.LiveView.Router
-  import Phoenix.LiveView.Helpers
-  import Phoenix.LiveDashboard.Router
 
   ## Admin Web App
   import CuisineWebsiteWeb.AuthController
@@ -55,7 +53,6 @@ defmodule CuisineWebsiteWeb.Router do
     get("/tag/:id", RecipeController, :get_update)
     post("/tag", TagController, :create)
     put("/tag/:id", TagController, :update)
-
   end
 
   scope "/admin", CuisineWebsiteWeb do
@@ -63,5 +60,4 @@ defmodule CuisineWebsiteWeb.Router do
 
     get("/logout", AuthController, :delete)
   end
-
 end

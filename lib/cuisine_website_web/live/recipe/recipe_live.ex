@@ -23,5 +23,4 @@ defmodule CuisineWebsiteWeb.RecipeLive do
     {:ok, recipes} = CuisineWebsite.Recipe.get_recipes_by_tag(socket.assigns.id)
     {:noreply, assign(socket, :recipes, recipes)}
   end
-
 end

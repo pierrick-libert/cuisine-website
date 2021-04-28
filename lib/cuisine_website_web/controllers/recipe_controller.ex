@@ -29,14 +29,13 @@ defmodule CuisineWebsiteWeb.RecipeController do
     |> render("create_update.html")
   end
 
-  def create(conn, %{"tag" => tag_params}) do
+  def create(conn, %{"tag" => _tag_params}) do
     conn
     |> redirect(to: "/admin")
   end
 
-  def update(conn, %{"id" => id, "tag" => tag_params}) do
+  def update(conn, %{"id" => _id, "tag" => _tag_params}) do
     conn
     |> redirect(to: "/admin")
   end
-
 end

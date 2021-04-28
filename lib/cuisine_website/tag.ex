@@ -5,10 +5,6 @@ defmodule CuisineWebsite.Tag do
   schema "tags" do
     field :key, :string
 
-    has_many :languages, CuisineWebsite.Tag.Language
-    has_many :recipe_tags, CuisineWebsite.RecipeTag
-    has_many :recipes, through: [:recipe_tag, :recipe]
-
     timestamps()
   end
 
