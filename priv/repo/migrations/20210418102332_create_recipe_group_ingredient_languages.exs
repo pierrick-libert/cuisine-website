@@ -7,7 +7,9 @@ defmodule CuisineWebsite.Repo.Migrations.CreateRecipeGroupIngredientLanguages do
       add :quantity, :decimal
       add :unit, :string
       add :ingredient, :string
-      add :recipe_ingredient_language_id, references(:recipe_ingredient_languages, on_delete: :nothing)
+
+      add :recipe_ingredient_language_id,
+          references(:recipe_ingredient_languages, on_delete: :nothing)
 
       timestamps()
     end

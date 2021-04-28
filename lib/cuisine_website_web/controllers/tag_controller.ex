@@ -35,5 +35,4 @@ defmodule CuisineWebsiteWeb.TagController do
     |> assign(:tag_params, tag_params)
     |> redirect(to: "/admin")
   end
-
 end

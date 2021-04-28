@@ -30,38 +30,47 @@ defmodule CuisineWebsite.Recipe do
   Get all recipes
   """
   def get_recipes(),
-    do: Repo.all(from r in Recipe,
-      join: t in assoc(r, :tags),
-      join: l in assoc(r, :languages),
-      join: tl in assoc(t, :languages),
-      select: r,
-      preload: [tag_languages: tl, languages: l])
+    do:
+      Repo.all(
+        from r in Recipe,
+          join: t in assoc(r, :tags),
+          join: l in assoc(r, :languages),
+          join: tl in assoc(t, :languages),
+          select: r,
+          preload: [tag_languages: tl, languages: l]
+      )
 
   @doc """
   Get all recipes for a tag
   """
   def get_recipes_by_tag(tag),
-    do: Repo.all(from r in Recipe,
-      join: t in assoc(r, :tags),
-      join: l in assoc(r, :languages),
-      join: tl in assoc(t, :languages),
-      where: t.key == ^tag,
-      select: r,
-      preload: [tag_languages: tl, languages: l])
+    do:
+      Repo.all(
+        from r in Recipe,
+          join: t in assoc(r, :tags),
+          join: l in assoc(r, :languages),
+          join: tl in assoc(t, :languages),
+          where: t.key == ^tag,
+          select: r,
+          preload: [tag_languages: tl, languages: l]
+      )
 
   @doc """
   Get recipe by ID
   """
   def get_recipe_by_id(recipe_id, lang),
-    do: Repo.all(from r in Recipe,
-      join: l in assoc(r, :languages),
-      join: i in assoc(r, :ingredients),
-      join: g in assoc(i, :groups),
-      join: t in assoc(r, :tags),
-      join: tl in assoc(t, :languages),
-      where: r.id == ^recipe_id and l.lang == ^lang and
-        i.lang == ^lang and g.lang == ^lang and tl.lang == ^lang,
-      select: r,
-      preload: [tag_languages: tl, languages: l, ingredients: i, groups: g])
-
+    do:
+      Repo.all(
+        from r in Recipe,
+          join: l in assoc(r, :languages),
+          join: i in assoc(r, :ingredients),
+          join: g in assoc(i, :groups),
+          join: t in assoc(r, :tags),
+          join: tl in assoc(t, :languages),
+          where:
+            r.id == ^recipe_id and l.lang == ^lang and
+              i.lang == ^lang and g.lang == ^lang and tl.lang == ^lang,
+          select: r,
+          preload: [tag_languages: tl, languages: l, ingredients: i, groups: g]
+      )
 end

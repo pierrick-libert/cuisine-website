@@ -38,5 +38,4 @@ defmodule CuisineWebsiteWeb.RecipeController do
     conn
     |> redirect(to: "/admin")
   end
-
 end

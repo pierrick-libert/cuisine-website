@@ -58,7 +58,10 @@ defmodule CuisineWebsite.Auth do
   Deletes the signed token with the given context.
   """
   def delete_session_token(token) do
-    CuisineWebsite.Repo.delete_all(CuisineWebsite.UserToken.token_and_context_query(token, "session"))
+    CuisineWebsite.Repo.delete_all(
+      CuisineWebsite.UserToken.token_and_context_query(token, "session")
+    )
+
     :ok
   end
 

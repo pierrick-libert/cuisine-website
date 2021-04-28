@@ -93,5 +93,4 @@ defmodule CuisineWebsite.User do
       changeset
     end
   end
-
 end
