@@ -2,8 +2,6 @@ defmodule CuisineWebsiteWeb.Router do
   use CuisineWebsiteWeb, :router
 
   import Phoenix.LiveView.Router
-  import Phoenix.LiveView.Helpers
-  import Phoenix.LiveDashboard.Router
 
   ## Admin Web App
   import CuisineWebsiteWeb.AuthController
