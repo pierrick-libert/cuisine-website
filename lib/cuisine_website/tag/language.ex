@@ -5,7 +5,7 @@ defmodule CuisineWebsite.Tag.Language do
   schema "tag_languages" do
     field :lang, :string
     field :name, :string
-    belongs_to :tag_id, CuisineWebsite.Tag
+    belongs_to :tag, CuisineWebsite.Tag
 
     timestamps()
   end

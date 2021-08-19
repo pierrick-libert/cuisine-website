@@ -7,7 +7,7 @@ defmodule CuisineWebsite.Recipe.GroupIngredientLanguage do
     field :lang, :string
     field :quantity, :decimal
     field :unit, :string
-    belongs_to :recipe_ingredient_language_id, CuisineWebsite.Recipe.IngredientLanguage
+    belongs_to :recipe_ingredient_language, CuisineWebsite.Recipe.IngredientLanguage
 
     timestamps()
   end

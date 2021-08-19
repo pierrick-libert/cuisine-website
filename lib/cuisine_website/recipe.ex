@@ -3,6 +3,8 @@ defmodule CuisineWebsite.Recipe do
   import Ecto.Query
   import Ecto.Changeset
 
+  alias CuisineWebsite.Repo
+  alias CuisineWebsite.Recipe
   alias CuisineWebsite.Tag
   alias CuisineWebsite.RecipeTag
 
@@ -33,11 +35,11 @@ defmodule CuisineWebsite.Recipe do
     do:
       Repo.all(
         from r in Recipe,
-          join: t in assoc(r, :tags),
-          join: l in assoc(r, :languages),
-          join: tl in assoc(t, :languages),
+          left_join: t in assoc(r, :tags),
+          left_join: l in assoc(r, :languages),
+          left_join: tl in assoc(t, :languages),
           select: r,
-          preload: [tag_languages: tl, languages: l]
+          preload: [tags: {t, languages: tl}, languages: l]
       )
 
   @doc """

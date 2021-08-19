@@ -5,6 +5,8 @@ defmodule CuisineWebsite.Tag do
   schema "tags" do
     field :key, :string
 
+    has_many :languages, CuisineWebsite.Tag.Language
+
     timestamps()
   end
 

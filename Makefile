@@ -11,5 +11,11 @@ install:
 	mix ecto.setup
 	cd assets/ && npm install; cd ../
 
+migrate:
+	mix ecto.migrate
+
+migrations:
+	mix ecto.gen.migration $(name)
+
 server:
 	mix phx.server

@@ -6,7 +6,7 @@ defmodule CuisineWebsite.Recipe.Language do
     field :html, :string
     field :lang, :string
     field :title, :string
-    belongs_to :recipe_id, CuisineWebsite.Recipe
+    belongs_to :recipe, CuisineWebsite.Recipe
 
     timestamps()
   end
