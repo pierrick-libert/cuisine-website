@@ -172,23 +172,29 @@ matches spec.md US3 Acceptance Scenarios 1-3.
 
 ### Tests for User Story 3
 
-- [ ] T033 [P] [US3] Integration test in `backend/tests/integration/multi-locale.test.ts`: add a
+- [X] T033 [P] [US3] Integration test in `backend/tests/integration/multi-locale.test.ts`: add a
       second locale via `PUT /recipes/{id}`, confirm both locales retrievable independently and
       ingredient quantities/units unchanged (FR-009)
-- [ ] T034 [P] [US3] Unit test in `backend/tests/unit/locale-content.test.ts` confirming
-      locale-keyed ingredient/step text does not leak across locales
+- [X] T034 [P] [US3] Unit test confirming locale-keyed ingredient/step text does not leak across
+      locales — in `frontend/tests/unit/locale-content.test.ts` (the `toRecipeDetail` projection)
+      and `frontend/tests/unit/localeEditing.test.ts` (the editor's merge/split helpers)
 
 ### Implementation for User Story 3
 
-- [ ] T035 [US3] Extend `get-recipe`/`update-recipe` handlers to assemble/accept multiple
-      `LOCALE#*` items without duplicating structural fields, in
-      `backend/src/handlers/get-recipe.ts` and `backend/src/handlers/update-recipe.ts` (depends on
-      T018, T028)
-- [ ] T036 [US3] Build `LocaleTabs` component (switch active locale; indicate which locales have
+- [X] T035 [US3] Extend `get-recipe`/`update-recipe` handlers to assemble/accept multiple
+      `LOCALE#*` items without duplicating structural fields — already satisfied by the T018/T028
+      implementation (confirmed by T033): `getRecipe`'s single `Query` on the partition key already
+      assembles every `LOCALE#*` item present, and `updateRecipe` only ever writes the one locale
+      item it was given, never touching the others. No code change needed.
+- [X] T036 [US3] Build `LocaleTabs` component (switch active locale; indicate which locales have
       content) in `frontend/src/components/LocaleTabs.tsx`
-- [ ] T037 [US3] Wire `RecipeEditorPage` to the active locale from `LocaleTabs` — groups/lines/
+- [X] T037 [US3] Wire `RecipeEditorPage` to the active locale from `LocaleTabs` — groups/lines/
       steps structure stays shared while translatable text swaps per locale — in
-      `frontend/src/pages/RecipeEditorPage.tsx` (depends on T022, T036)
+      `frontend/src/pages/RecipeEditorPage.tsx` (depends on T022, T036). Implemented by splitting
+      editor state into shared structure + `Record<locale, text>`, merged for display and split on
+      every change (`frontend/src/lib/localeEditing.ts`), so switching locale tabs never discards
+      unsaved structural edits — fetches `getRecipeRaw` (all locales at once) rather than one
+      locale's projection.
 
 **Checkpoint**: All three user stories are independently functional.
 

@@ -67,24 +67,24 @@ export interface RecipeInput {
 }
 
 // Backend's assembled GET shape (ingredientGroups hold ids/quantities, locales[x] holds text).
-interface RawRecipeLine {
+export interface RawRecipeLine {
   lineId: string;
   quantity: number;
   unit: string | null;
   approxEquivalent: ApproxEquivalent | null;
 }
-interface RawRecipeGroup {
+export interface RawRecipeGroup {
   groupId: string;
   lines: RawRecipeLine[];
 }
-interface RawLocaleContent {
+export interface RawLocaleContent {
   name: string;
   description: string;
   groupNames: Record<string, string>;
   ingredientNames: Record<string, string>;
   steps: Record<string, Record<string, unknown>>;
 }
-interface RawRecipe {
+export interface RawRecipe {
   recipeId: string;
   status: 'draft';
   categoryId: string | null;
@@ -95,7 +95,7 @@ interface RawRecipe {
 }
 
 /** Projects the backend's split META/LOCALE shape into a flat, locale-specific editor view. */
-function toRecipeDetail(raw: RawRecipe, locale: string): RecipeDetail {
+export function toRecipeDetail(raw: RawRecipe, locale: string): RecipeDetail {
   const content = raw.locales[locale] ?? raw.locales[Object.keys(raw.locales)[0]!];
   const resolvedLocale = raw.locales[locale] ? locale : Object.keys(raw.locales)[0]!;
 
@@ -140,6 +140,12 @@ export async function listRecipes(): Promise<RecipeSummary[]> {
 export async function getRecipe(recipeId: string, locale = 'en'): Promise<RecipeDetail> {
   const raw = await request<RawRecipe>(`/recipes/${recipeId}`);
   return toRecipeDetail(raw, locale);
+}
+
+/** Fetches every locale's content at once — used by the editor so switching locale tabs never
+ * needs a server round trip or discards unsaved structural edits. */
+export async function getRecipeRaw(recipeId: string): Promise<RawRecipe> {
+  return request<RawRecipe>(`/recipes/${recipeId}`);
 }
 
 export async function createRecipe(input: RecipeInput): Promise<RecipeDetail> {

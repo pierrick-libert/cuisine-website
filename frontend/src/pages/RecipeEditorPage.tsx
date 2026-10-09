@@ -3,63 +3,82 @@ import { useNavigate, useParams } from 'react-router';
 import { IngredientGroupEditor } from '../components/IngredientGroupEditor.js';
 import { StepsEditor } from '../components/StepsEditor.js';
 import { CategoryTagPicker } from '../components/CategoryTagPicker.js';
+import { LocaleTabs } from '../components/LocaleTabs.js';
 import {
   createRecipe,
   deleteRecipe,
-  getRecipe,
+  getRecipeRaw,
   updateRecipe,
-  type IngredientGroup,
-  type RecipeInput,
-  type Step,
+  type RawLocaleContent,
+  type RawRecipeGroup,
 } from '../services/recipesApi.js';
+import {
+  emptyLocaleContent,
+  mergeGroupsForDisplay,
+  mergeStepsForDisplay,
+  splitGroupsFromDisplay,
+  splitStepsFromDisplay,
+} from '../lib/localeEditing.js';
 
 /**
- * Create (User Story 1) and edit/delete (User Story 2) a draft recipe. Multi-locale authoring
- * (User Story 3) extends this page further.
+ * Create (User Story 1), edit/delete (User Story 2), and multi-locale authoring (User Story 3)
+ * for a draft recipe.
+ *
+ * Structure (ingredient groups/lines' ids/quantities/units, step order) is kept separate from
+ * per-locale text (names, descriptions, step rich text) in local state, mirroring the backend's
+ * META/LOCALE split (data-model.md). This is what lets switching the active locale tab never
+ * discard unsaved structural edits — merge/split helpers in lib/localeEditing.ts combine the two
+ * only for display, and split them apart again on every change.
  */
 export function RecipeEditorPage() {
   const { id } = useParams<{ id: string }>();
-  const isNew = !id || id === 'new';
+  const isNew = !id;
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(!isNew);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [categoryName, setCategoryName] = useState('');
   const [tags, setTags] = useState<string[]>([]);
-  const [ingredientGroups, setIngredientGroups] = useState<IngredientGroup[]>([]);
-  const [steps, setSteps] = useState<Step[]>([]);
+  const [structureGroups, setStructureGroups] = useState<RawRecipeGroup[]>([]);
+  const [stepsOrder, setStepsOrder] = useState<string[]>([]);
+  const [activeLocale, setActiveLocale] = useState('en');
+  const [localeTexts, setLocaleTexts] = useState<Record<string, RawLocaleContent>>({ en: emptyLocaleContent() });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (isNew || !id) return;
     setLoading(true);
-    getRecipe(id)
-      .then((recipe) => {
-        setName(recipe.name);
-        setDescription(recipe.description);
-        setCategoryName(recipe.categoryId ?? ''); // categoryId displayed until a name-lookup exists
-        setTags(recipe.tags);
-        setIngredientGroups(recipe.ingredientGroups);
-        setSteps(recipe.steps);
+    getRecipeRaw(id)
+      .then((raw) => {
+        setCategoryName(raw.categoryId ?? ''); // categoryId shown until a name-lookup exists
+        setTags(raw.tags);
+        setStructureGroups(raw.ingredientGroups);
+        setStepsOrder(raw.stepsOrder);
+        setLocaleTexts(raw.locales);
+        setActiveLocale(Object.keys(raw.locales)[0] ?? 'en');
       })
       .catch(() => setError('Could not load this recipe.'))
       .finally(() => setLoading(false));
   }, [id, isNew]);
 
+  const activeText = localeTexts[activeLocale] ?? emptyLocaleContent();
+
+  function updateActiveText(patch: Partial<RawLocaleContent>) {
+    setLocaleTexts((prev) => ({ ...prev, [activeLocale]: { ...(prev[activeLocale] ?? emptyLocaleContent()), ...patch } }));
+  }
+
   async function handleSave() {
     setError(null);
     setSaving(true);
     try {
-      const input: RecipeInput = {
-        locale: 'en',
-        name,
-        description,
+      const input = {
+        locale: activeLocale,
+        name: activeText.name,
+        description: activeText.description,
         categoryName: categoryName || null,
         tags,
-        ingredientGroups,
-        steps,
+        ingredientGroups: mergeGroupsForDisplay(structureGroups, activeText),
+        steps: mergeStepsForDisplay(stepsOrder, activeText),
       };
       const recipe = isNew || !id ? await createRecipe(input) : await updateRecipe(id, input);
       navigate(`/recipes/${recipe.recipeId}`, { replace: true });
@@ -81,13 +100,16 @@ export function RecipeEditorPage() {
 
   if (loading) return <p style={{ padding: 24 }}>Loading…</p>;
 
+  const displayGroups = mergeGroupsForDisplay(structureGroups, activeText);
+  const displaySteps = mergeStepsForDisplay(stepsOrder, activeText);
+
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <input
           aria-label="Recipe name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={activeText.name}
+          onChange={(e) => updateActiveText({ name: e.target.value })}
           placeholder="Recipe name"
           style={{ fontSize: 24, fontWeight: 700, border: 'none', flex: 1 }}
         />
@@ -109,10 +131,18 @@ export function RecipeEditorPage() {
       </div>
       {error && <p style={{ color: '#b3261e' }}>{error}</p>}
 
+      <div style={{ marginBottom: 16 }}>
+        <LocaleTabs
+          availableLocales={Object.keys(localeTexts)}
+          activeLocale={activeLocale}
+          onSelect={setActiveLocale}
+        />
+      </div>
+
       <textarea
         aria-label="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
+        value={activeText.description}
+        onChange={(e) => updateActiveText({ description: e.target.value })}
         placeholder="Description"
         style={{ width: '100%', minHeight: 60, marginBottom: 20 }}
       />
@@ -127,10 +157,24 @@ export function RecipeEditorPage() {
       </div>
 
       <h2 style={{ fontSize: 18 }}>Ingredients</h2>
-      <IngredientGroupEditor groups={ingredientGroups} onChange={setIngredientGroups} />
+      <IngredientGroupEditor
+        groups={displayGroups}
+        onChange={(groups) => {
+          const { structure, groupNames, ingredientNames } = splitGroupsFromDisplay(groups);
+          setStructureGroups(structure);
+          updateActiveText({ groupNames, ingredientNames });
+        }}
+      />
 
       <h2 style={{ fontSize: 18, marginTop: 24 }}>Method</h2>
-      <StepsEditor steps={steps} onChange={setSteps} />
+      <StepsEditor
+        steps={displaySteps}
+        onChange={(steps) => {
+          const { stepsOrder: order, steps: stepTexts } = splitStepsFromDisplay(steps);
+          setStepsOrder(order);
+          updateActiveText({ steps: stepTexts });
+        }}
+      />
     </div>
   );
 }
