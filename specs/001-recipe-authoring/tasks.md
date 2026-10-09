@@ -146,14 +146,16 @@ Scenarios 1-4.
       locale at all. Revisit if/when a locale-removal action is actually added to the UI.
 - [X] T029 [US2] Implement `DELETE /recipes/{id}` handler in
       `backend/src/handlers/delete-recipe.ts` (FR-013; depends on T010)
-- [ ] T030 [US2] Add drag-to-reorder and delete actions to `IngredientGroupEditor`/
+- [X] T030 [US2] Add drag-to-reorder and delete actions to `IngredientGroupEditor`/
       `IngredientLineRow` in `frontend/src/components/IngredientGroupEditor.tsx` and
-      `frontend/src/components/IngredientLineRow.tsx` (depends on T020)
-- [ ] T031 [P] [US2] Build `CategoryTagPicker` (existing-or-new category, free-form tags) in
+      `frontend/src/components/IngredientLineRow.tsx` (depends on T020) — move-up/down controls,
+      not pointer drag, per the same reasoning as T020
+- [X] T031 [P] [US2] Build `CategoryTagPicker` (existing-or-new category, free-form tags) in
       `frontend/src/components/CategoryTagPicker.tsx`
-- [ ] T032 [US2] Wire `RecipeEditorPage`'s save action to `PUT /recipes/{id}` for existing recipes,
+- [X] T032 [US2] Wire `RecipeEditorPage`'s save action to `PUT /recipes/{id}` for existing recipes,
       add the delete-recipe action, and integrate `CategoryTagPicker` in
-      `frontend/src/pages/RecipeEditorPage.tsx` (depends on T022, T028, T029, T031)
+      `frontend/src/pages/RecipeEditorPage.tsx` (depends on T022, T028, T029, T031). Loads an
+      existing recipe via `GET /recipes/{id}` when the route carries an id.
 
 **Checkpoint**: User Stories 1 and 2 both work — full create/edit/delete lifecycle.
 

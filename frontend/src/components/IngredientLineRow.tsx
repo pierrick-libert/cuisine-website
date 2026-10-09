@@ -4,6 +4,10 @@ interface IngredientLineRowProps {
   line: IngredientLine;
   onChange: (line: IngredientLine) => void;
   onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -14,9 +18,23 @@ const inputStyle: React.CSSProperties = {
 };
 
 /** A single ingredient row: quantity/unit/name, plus the optional approximate equivalent. */
-export function IngredientLineRow({ line, onChange, onDelete }: IngredientLineRowProps) {
+export function IngredientLineRow({
+  line,
+  onChange,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp,
+  canMoveDown,
+}: IngredientLineRowProps) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
+      <button type="button" aria-label="Move ingredient up" disabled={!canMoveUp} onClick={onMoveUp}>
+        ↑
+      </button>
+      <button type="button" aria-label="Move ingredient down" disabled={!canMoveDown} onClick={onMoveDown}>
+        ↓
+      </button>
       <input
         aria-label="Quantity"
         type="number"

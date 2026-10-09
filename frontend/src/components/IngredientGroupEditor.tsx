@@ -74,6 +74,10 @@ export function IngredientGroupEditor({ groups, onChange }: IngredientGroupEdito
               onDelete={() =>
                 updateGroup(groupIndex, { ...group, lines: group.lines.filter((_, i) => i !== lineIndex) })
               }
+              onMoveUp={() => updateGroup(groupIndex, { ...group, lines: move(group.lines, lineIndex, -1) })}
+              onMoveDown={() => updateGroup(groupIndex, { ...group, lines: move(group.lines, lineIndex, 1) })}
+              canMoveUp={lineIndex > 0}
+              canMoveDown={lineIndex < group.lines.length - 1}
             />
           ))}
           <button
