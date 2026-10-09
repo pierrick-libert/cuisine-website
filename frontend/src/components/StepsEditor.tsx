@@ -23,10 +23,10 @@ function StepEditorItem({ step, onChange, onDelete }: { step: Step; onChange: (r
   return (
     <div style={{ border: '1px solid #e5e5e5', borderRadius: 9, padding: '10px 12px', marginBottom: 12 }}>
       <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-        <button type="button" onClick={() => editor?.chain().focus().toggleBold().run()} style={{ fontWeight: 700 }}>
+        <button type="button" aria-label="Bold" onClick={() => editor?.chain().focus().toggleBold().run()} style={{ fontWeight: 700 }}>
           B
         </button>
-        <button type="button" onClick={() => editor?.chain().focus().toggleItalic().run()} style={{ fontStyle: 'italic' }}>
+        <button type="button" aria-label="Italic" onClick={() => editor?.chain().focus().toggleItalic().run()} style={{ fontStyle: 'italic' }}>
           I
         </button>
         <button

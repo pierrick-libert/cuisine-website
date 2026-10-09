@@ -202,14 +202,19 @@ matches spec.md US3 Acceptance Scenarios 1-3.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T038 [P] Add `backend/README.md` and `frontend/README.md` with run instructions matching
+- [X] T038 [P] Add `backend/README.md` and `frontend/README.md` with run instructions matching
       quickstart.md
-- [ ] T039 Run quickstart.md's validation scenarios end to end manually and record the results in
-      `specs/001-recipe-authoring/quickstart.md` (append an "Executed" note)
-- [ ] T040 [P] Pass over error-handling/logging consistency across all handlers in
-      `backend/src/handlers/`
-- [ ] T041 [P] Accessibility pass (keyboard navigation, labels) on `IngredientGroupEditor`,
-      `StepsEditor`, and `LocaleTabs` in `frontend/src/components/`
+- [X] T039 Run quickstart.md's validation scenarios end to end manually and record the results in
+      `specs/001-recipe-authoring/quickstart.md` (append an "Executed" note) — this caught and fixed
+      a real bug (DynamoDB internal keys leaking into API responses) and a `dev` script ordering bug
+- [X] T040 [P] Pass over error-handling/logging consistency across all handlers in
+      `backend/src/handlers/` — added `parseJsonBody` (malformed JSON body -> 400, not an uncaught
+      500) used by `create-recipe`/`update-recipe`; the other handlers' existing 400/404 checks were
+      already consistent
+- [X] T041 [P] Accessibility pass (keyboard navigation, labels) on `IngredientGroupEditor`,
+      `StepsEditor`, and `LocaleTabs` in `frontend/src/components/` — added `aria-label`s to
+      icon/letter-only buttons (Bold/Italic, locale tabs) and made the locale-content indicator dot
+      `aria-hidden` with the info folded into the tab's own label
 
 ---
 

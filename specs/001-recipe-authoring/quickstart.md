@@ -44,8 +44,8 @@ cd frontend && npm run dev    # SPA dev server, e.g. on :5173, proxying /recipes
      `POST /recipes`), consistent with FR-002.
    - Create an ingredient group, add zero lines to it, save → expected: succeeds, group shown
      empty in the UI.
-   - On a recipe with only one locale, attempt to remove that locale's content entirely via the
-     API → expected: rejected per the contract's last-locale constraint.
+   - Note: there is no "remove a locale's content" action in this feature (a `PUT` only ever adds
+     or edits one locale; it never deletes another) — see tasks.md's T028 scoping note.
 
 ## Automated coverage
 
@@ -54,3 +54,17 @@ cd frontend && npm run dev    # SPA dev server, e.g. on :5173, proxying /recipes
   covering the acceptance scenarios above.
 - `frontend/tests/unit`: ingredient group/line reorder and delete logic, locale tab switching
   (content isolation between locales).
+
+## Executed (2026-10-09)
+
+Ran the full create → get → update (quantity change + add a second locale) → delete flow over
+real HTTP against the local dev server (`npm run dev`) and local DynamoDB, not just via direct
+handler calls (which is what the automated integration tests do) — this is what actually caught a
+real bug: DynamoDB's internal `PK`/`SK` attributes were leaking into every API response. Fixed in
+`backend/src/repository/recipe-repository.ts` (a `stripKeys` helper) and covered by a new
+regression test (`backend/tests/integration/get-recipe.test.ts`). Also fixed the `dev`/
+`create-table:local` npm scripts, where `tsx watch --flag file.ts` needs `watch` before the flags
+(`tsx watch --flag file.ts`, not `tsx --flag watch file.ts`) or `tsx` mis-parses `watch` as the
+entry file. All other scenarios above passed as expected on the first try. Automated suite: 23
+backend tests, 15 frontend tests, all passing.
+

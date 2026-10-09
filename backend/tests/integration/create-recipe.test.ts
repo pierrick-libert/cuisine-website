@@ -16,6 +16,11 @@ describe('POST /recipes (US1)', () => {
     expect(result.statusCode).toBe(400);
   });
 
+  it('rejects a malformed JSON body with 400, not an uncaught error', async () => {
+    const result = await handler({ body: '{not json' } as unknown as Parameters<typeof handler>[0]);
+    expect(result.statusCode).toBe(400);
+  });
+
   it('creates a recipe with only a name, accepting empty groups/steps (FR-010)', async () => {
     const result = await handler(event({ locale: 'en', name: 'Minimal Draft' }));
     expect(result.statusCode).toBe(201);

@@ -22,6 +22,8 @@ export function LocaleTabs({ availableLocales, activeLocale, onSelect }: LocaleT
           <button
             key={locale}
             type="button"
+            aria-pressed={isActive}
+            aria-label={`${KNOWN_LOCALES[locale] ?? locale.toUpperCase()}, ${hasContent ? 'has content' : 'no content yet'}`}
             onClick={() => onSelect(locale)}
             style={{
               padding: '7px 14px',
@@ -34,7 +36,9 @@ export function LocaleTabs({ availableLocales, activeLocale, onSelect }: LocaleT
             }}
           >
             {KNOWN_LOCALES[locale] ?? locale.toUpperCase()}{' '}
-            <span style={{ color: hasContent ? '#40704f' : '#bbb' }}>{hasContent ? '●' : '○'}</span>
+            <span aria-hidden="true" style={{ color: hasContent ? '#40704f' : '#bbb' }}>
+              {hasContent ? '●' : '○'}
+            </span>
           </button>
         );
       })}

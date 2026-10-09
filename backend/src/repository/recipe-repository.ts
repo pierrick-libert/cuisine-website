@@ -78,14 +78,22 @@ function splitInput(input: RecipeInput): { groups: IngredientGroup[]; stepsOrder
   };
 }
 
-function assembleRecipe(metaItem: RecipeMeta, localeItems: Array<{ SK: string } & RecipeLocaleContent>): RecipeWithLocales {
+/** Strips DynamoDB's internal PK/SK keys before an item is returned over the API. */
+function stripKeys<T extends object>(item: T): Omit<T, 'PK' | 'SK'> {
+  const { PK: _pk, SK: _sk, ...rest } = item as T & { PK?: unknown; SK?: unknown };
+  return rest;
+}
+
+function assembleRecipe(
+  metaItem: RecipeMeta & { PK?: unknown; SK?: unknown },
+  localeItems: Array<{ SK: string } & RecipeLocaleContent>,
+): RecipeWithLocales {
   const locales: Record<Locale, RecipeLocaleContent> = {};
   for (const item of localeItems) {
     const locale = item.SK.replace('LOCALE#', '');
-    const { SK: _sk, ...content } = item;
-    locales[locale] = content as RecipeLocaleContent;
+    locales[locale] = stripKeys(item) as RecipeLocaleContent;
   }
-  return { ...metaItem, locales };
+  return { ...(stripKeys(metaItem) as RecipeMeta), locales };
 }
 
 export async function createRecipe(input: RecipeInput): Promise<RecipeWithLocales> {
