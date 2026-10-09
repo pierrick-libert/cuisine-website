@@ -23,9 +23,9 @@ implementation and testing of each story.
       Structure (`backend/src/{handlers,domain,repository,lib}`,
       `backend/tests/{unit,integration}`, `frontend/src/{components,pages,services}`,
       `frontend/tests/unit`)
-- [ ] T002 Initialize `backend/package.json`: TypeScript 5.x on Node 20, `@aws-sdk/client-dynamodb`,
+- [ ] T002 Initialize `backend/package.json`: TypeScript 7.x on Node 26, `@aws-sdk/client-dynamodb`,
       `@aws-sdk/lib-dynamodb`, Vitest (per research.md)
-- [ ] T003 [P] Initialize `frontend/package.json`: React 18 + TypeScript, React Router, Tiptap
+- [ ] T003 [P] Initialize `frontend/package.json`: React 19 + TypeScript, React Router, Tiptap
       (per research.md)
 - [ ] T004 [P] Configure ESLint + Prettier for `backend/` and `frontend/`
 - [ ] T005 [P] Add an npm script to start `amazon/dynamodb-local` via Docker for integration tests

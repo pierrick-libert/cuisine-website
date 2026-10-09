@@ -1,6 +1,6 @@
 # Quickstart: Validating Recipe Authoring
 
-Prerequisites: Node.js 20.x, Docker (for local DynamoDB).
+Prerequisites: Node.js 26.x, Docker (for local DynamoDB).
 
 ## Setup
 
