@@ -37,25 +37,25 @@ implementation and testing of each story.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T006 Define shared TypeScript types for Recipe (META item), Ingredient Group/Line, Locale
+- [X] T006 Define shared TypeScript types for Recipe (META item), Ingredient Group/Line, Locale
       Content, and Category in `backend/src/domain/types.ts`, matching the item shapes in
       data-model.md exactly (including that `unit` and `approxEquivalent` are optional per
       FR-004/FR-005, and that ingredient/step *names* live only in locale items, never in the
       META item)
-- [ ] T007 [P] Implement ULID generation helper in `backend/src/lib/id.ts` (used for `recipeId`,
+- [X] T007 [P] Implement ULID generation helper in `backend/src/lib/id.ts` (used for `recipeId`,
       `categoryId`, `groupId`, `lineId`, step ids)
-- [ ] T008 [P] Implement category name normalization in `backend/src/domain/category.ts`: lowercase
+- [X] T008 [P] Implement category name normalization in `backend/src/domain/category.ts`: lowercase
       + trim the display name into `normalizedName`, quoting FR-008 verbatim as the function's
       doc comment — "'Dessert' and 'dessert' resolve to the same category rather than creating a
       duplicate"
-- [ ] T009 Implement the single-table DynamoDB client wrapper in
+- [X] T009 Implement the single-table DynamoDB client wrapper in
       `backend/src/repository/table-client.ts` (PK/SK as defined in data-model.md, no secondary
       indexes per constitution Principle IV)
-- [ ] T010 Implement recipe repository primitives (get/put/delete by `PK`/`SK`, list via full Scan)
+- [X] T010 Implement recipe repository primitives (get/put/delete by `PK`/`SK`, list via full Scan)
       in `backend/src/repository/recipe-repository.ts` (depends on T006, T009)
-- [ ] T011 [P] Implement category repository (find-by-`normalizedName`-or-create) in
+- [X] T011 [P] Implement category repository (find-by-`normalizedName`-or-create) in
       `backend/src/repository/category-repository.ts` (depends on T006, T008, T009)
-- [ ] T012 Add an npm script `create-table:local` in `backend/package.json` that creates the single
+- [X] T012 Add an npm script `create-table:local` in `backend/package.json` that creates the single
       table (PK/SK, on-demand billing) against local DynamoDB, per quickstart.md's Setup section
 - [ ] T013 Scaffold the backoffice SPA shell — React Router routes for `RecipeListPage` and
       `RecipeEditorPage`, and a stub API client — in `frontend/src/App.tsx` and
