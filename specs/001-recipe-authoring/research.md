@@ -58,6 +58,18 @@ entry below follows Decision / Rationale / Alternatives considered.
 - **Alternatives considered**: Jest — works equally well technically; Vitest chosen for faster
   startup and native ESM/TS support without extra transform configuration.
 
+## TypeScript version
+
+- **Decision**: TypeScript **6.0.3**, not the newer 7.0.2.
+- **Rationale**: 7.0.2 is a from-scratch Go-based rewrite of the compiler (released 2026-07-08);
+  `typescript-eslint` (needed for linting) has not added support for it yet — its peer dependency
+  range is `>=4.8.4 <6.1.0` even on the canary channel as of 2026-10-09, confirmed by checking npm
+  directly rather than assuming compatibility. 6.0.3 is the final release on the previous
+  JS-based compiler, explicitly positioned as "a bridge to TypeScript 7."
+- **Alternatives considered**: TypeScript 7.0.2 with linting disabled or deferred — rejected, the
+  constitution's development workflow doesn't call for cutting quality tooling to chase the newest
+  compiler; revisit this pin once `typescript-eslint` ships TS7 support.
+
 ## Dependency versions (verified against npm/PyPI/nodejs.org on 2026-10-09)
 
 Per project policy (always check actual current versions rather than relying on training-data
@@ -66,7 +78,7 @@ running the install commands in T002/T003, since time will have passed.
 
 | Package | Verified latest (2026-10-09) |
 |---|---|
-| `typescript` | 7.0.2 |
+| `typescript` | 6.0.3 (pinned below 7.x — see TypeScript version decision above) |
 | `node` (Lambda target) | 24.21.0 — latest **LTS** ("Krypton"); 26.x exists but is still the non-LTS Current line |
 | `react` | 19.3.0 |
 | `react-router` | 8.4.0 |

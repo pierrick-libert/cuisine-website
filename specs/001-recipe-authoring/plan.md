@@ -15,11 +15,15 @@ backoffice," per the spec's Assumptions.
 
 ## Technical Context
 
-**Language/Version**: TypeScript 7.x on Node.js 24.x LTS ("Krypton") for the backend; TypeScript +
+**Language/Version**: TypeScript 6.0.3 on Node.js 24.x LTS ("Krypton") for the backend; TypeScript +
 React 19 for the backoffice SPA. Node 24.x is chosen over the newer Node 26.x because 26.x is
 still the "Current" release line, not yet promoted to LTS (verified against nodejs.org's release
 index) — Principle I (Cost Above All) and general production-stability practice favor the actively
-supported LTS line for a Lambda runtime over the shorter-support Current line.
+supported LTS line for a Lambda runtime over the shorter-support Current line. TypeScript is
+pinned to 6.0.3 (the final release on the previous JS-based compiler) rather than the newer 7.0.2
+(a from-scratch Go rewrite) because `typescript-eslint` — required for linting — does not yet
+support TypeScript 7 (its peer range caps at `<6.1.0`, even on its canary channel, as of
+2026-10-09); this will be revisited once the ecosystem catches up.
 
 **Primary Dependencies**: AWS SDK v3 (`@aws-sdk/client-dynamodb`, `@aws-sdk/lib-dynamodb`) for data
 access; API Gateway (HTTP API) as the Lambda trigger; a lightweight rich-text editor library for

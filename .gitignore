@@ -1,0 +1,20 @@
+# Node.js / TypeScript
+node_modules/
+dist/
+build/
+*.log
+npm-debug.log*
+.env
+.env.*
+!.env.example
+coverage/
+
+# Local DynamoDB
+.dynamodb/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
