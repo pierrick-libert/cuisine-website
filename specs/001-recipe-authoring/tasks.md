@@ -95,18 +95,20 @@ Scenarios 1-3.
       contracts/recipes-api.md (depends on T010)
 - [X] T019 [US1] Implement `GET /recipes` (list) handler in `backend/src/handlers/list-recipes.ts`
       using a full table Scan grouped in memory, per constitution Principle IV (depends on T010)
-- [ ] T020 [P] [US1] Build `IngredientGroupEditor` and `IngredientLineRow` components in
+- [X] T020 [P] [US1] Build `IngredientGroupEditor` and `IngredientLineRow` components in
       `frontend/src/components/IngredientGroupEditor.tsx` and
       `frontend/src/components/IngredientLineRow.tsx` — quantity/unit/name fields, add-group and
-      add-line actions
-- [ ] T021 [P] [US1] Build the `StepsEditor` rich-text component (Tiptap; bold/italic + inline
-      images per FR-006) in `frontend/src/components/StepsEditor.tsx`
-- [ ] T022 [US1] Build `RecipeEditorPage` wiring `IngredientGroupEditor` + `StepsEditor` + a save
+      add-line actions (reorder uses move-up/down controls rather than pointer drag-and-drop, to
+      avoid a drag-and-drop library dependency for a single-user tool)
+- [X] T021 [P] [US1] Build the `StepsEditor` rich-text component (Tiptap; bold/italic + inline
+      images per FR-006) in `frontend/src/components/StepsEditor.tsx` (image insertion is by URL —
+      an upload pipeline is out of this feature's scope per spec.md Assumptions)
+- [X] T022 [US1] Build `RecipeEditorPage` wiring `IngredientGroupEditor` + `StepsEditor` + a save
       action calling `POST /recipes` in `frontend/src/pages/RecipeEditorPage.tsx` (depends on T020,
       T021)
-- [ ] T023 [US1] Build `RecipeListPage` showing saved drafts via `GET /recipes` in
+- [X] T023 [US1] Build `RecipeListPage` showing saved drafts via `GET /recipes` in
       `frontend/src/pages/RecipeListPage.tsx` (depends on T019)
-- [ ] T024 [US1] Implement `createRecipe`/`getRecipe`/`listRecipes` methods in
+- [X] T024 [US1] Implement `createRecipe`/`getRecipe`/`listRecipes` methods in
       `frontend/src/services/recipesApi.ts` (depends on T017, T018, T019)
 
 **Checkpoint**: User Story 1 is fully functional and independently testable — a recipe can be
