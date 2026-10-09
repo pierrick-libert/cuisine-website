@@ -58,4 +58,22 @@ entry below follows Decision / Rationale / Alternatives considered.
 - **Alternatives considered**: Jest — works equally well technically; Vitest chosen for faster
   startup and native ESM/TS support without extra transform configuration.
 
+## Dependency versions (verified against npm/PyPI/nodejs.org on 2026-10-09)
+
+Per project policy (always check actual current versions rather than relying on training-data
+defaults), these are the verified-current versions as of research time; re-verify before actually
+running the install commands in T002/T003, since time will have passed.
+
+| Package | Verified latest (2026-10-09) |
+|---|---|
+| `typescript` | 7.0.2 |
+| `node` (Lambda target) | 24.21.0 — latest **LTS** ("Krypton"); 26.x exists but is still the non-LTS Current line |
+| `react` | 19.3.0 |
+| `react-router` | 8.4.0 |
+| `@tiptap/core` (and matching `@tiptap/*` extensions) | 3.31.4 |
+| `vitest` | 5.0.3 |
+| `@aws-sdk/client-dynamodb` / `@aws-sdk/lib-dynamodb` | 3.1148.0 |
+| `uv` (Spec Kit tooling, not an app dependency) | 0.12.24 |
+| Spec Kit (`specify-cli`) | v1.1.2 (already installed) |
+
 **Output**: all Technical Context items resolved; no `NEEDS CLARIFICATION` markers remain.

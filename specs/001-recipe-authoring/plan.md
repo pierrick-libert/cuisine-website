@@ -15,8 +15,11 @@ backoffice," per the spec's Assumptions.
 
 ## Technical Context
 
-**Language/Version**: TypeScript 7.x on Node.js 26.x (Lambda runtime) for the backend; TypeScript
-+ React 19 for the backoffice SPA.
+**Language/Version**: TypeScript 7.x on Node.js 24.x LTS ("Krypton") for the backend; TypeScript +
+React 19 for the backoffice SPA. Node 24.x is chosen over the newer Node 26.x because 26.x is
+still the "Current" release line, not yet promoted to LTS (verified against nodejs.org's release
+index) — Principle I (Cost Above All) and general production-stability practice favor the actively
+supported LTS line for a Lambda runtime over the shorter-support Current line.
 
 **Primary Dependencies**: AWS SDK v3 (`@aws-sdk/client-dynamodb`, `@aws-sdk/lib-dynamodb`) for data
 access; API Gateway (HTTP API) as the Lambda trigger; a lightweight rich-text editor library for
@@ -29,7 +32,7 @@ memory grouping for listing).
 **Testing**: Vitest for unit tests (validation/domain logic); integration tests for Lambda handlers
 against a local DynamoDB (resolved in research.md).
 
-**Target Platform**: AWS Lambda (Node 26.x) + API Gateway HTTP API for the backend; any evergreen
+**Target Platform**: AWS Lambda (Node 24.x LTS) + API Gateway HTTP API for the backend; any evergreen
 desktop browser for the backoffice SPA (single user, not a public-facing surface).
 
 **Project Type**: Web application (backend + frontend).
