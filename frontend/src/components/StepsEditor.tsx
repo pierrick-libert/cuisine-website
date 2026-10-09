@@ -1,6 +1,7 @@
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import { move } from '../lib/reorder.js';
 import type { Step } from '../services/recipesApi.js';
 
 interface StepsEditorProps {
@@ -10,15 +11,6 @@ interface StepsEditorProps {
 
 function newStep(): Step {
   return { stepId: crypto.randomUUID(), richText: { type: 'doc', content: [{ type: 'paragraph' }] } };
-}
-
-function move<T>(list: T[], index: number, delta: number): T[] {
-  const target = index + delta;
-  if (target < 0 || target >= list.length) return list;
-  const next = [...list];
-  const [item] = next.splice(index, 1);
-  next.splice(target, 0, item as T);
-  return next;
 }
 
 function StepEditorItem({ step, onChange, onDelete }: { step: Step; onChange: (richText: Record<string, unknown>) => void; onDelete: () => void }) {

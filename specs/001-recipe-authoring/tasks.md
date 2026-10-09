@@ -127,21 +127,24 @@ Scenarios 1-4.
 
 ### Tests for User Story 2
 
-- [ ] T025 [P] [US2] Integration test for `PUT /recipes/{id}` in
+- [X] T025 [P] [US2] Integration test for `PUT /recipes/{id}` in
       `backend/tests/integration/update-recipe.test.ts`: quantity update, line/group reorder, and
       delete-of-group/line/step
-- [ ] T026 [P] [US2] Integration test for `DELETE /recipes/{id}` in
+- [X] T026 [P] [US2] Integration test for `DELETE /recipes/{id}` in
       `backend/tests/integration/delete-recipe.test.ts` (FR-013)
-- [ ] T027 [P] [US2] Unit test for reorder logic in `backend/tests/unit/reorder.test.ts`: array
-      order is display order (data-model.md), reordering/deleting one group/line never corrupts
-      unrelated content (SC-004)
+- [X] T027 [P] [US2] Unit test for reorder logic in `frontend/tests/unit/reorder.test.ts` (moved
+      from `backend/` — reordering is purely a frontend array operation; the backend simply
+      persists whatever order the client sends): array order is display order (data-model.md),
+      reordering/deleting one group/line never corrupts unrelated content (SC-004)
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Implement `PUT /recipes/{id}` handler in `backend/src/handlers/update-recipe.ts`
-      (depends on T010, T011), including the server-side "last locale cannot be removed" rule from
-      contracts/recipes-api.md
-- [ ] T029 [US2] Implement `DELETE /recipes/{id}` handler in
+- [X] T028 [US2] Implement `PUT /recipes/{id}` handler in `backend/src/handlers/update-recipe.ts`
+      (depends on T010, T011). Scoping note: no dedicated "remove a locale" route exists in this
+      feature's contract (a PUT only ever adds/edits one locale's content), so the "last locale
+      cannot be removed" rule has nothing to enforce yet — there is no operation that removes a
+      locale at all. Revisit if/when a locale-removal action is actually added to the UI.
+- [X] T029 [US2] Implement `DELETE /recipes/{id}` handler in
       `backend/src/handlers/delete-recipe.ts` (FR-013; depends on T010)
 - [ ] T030 [US2] Add drag-to-reorder and delete actions to `IngredientGroupEditor`/
       `IngredientLineRow` in `frontend/src/components/IngredientGroupEditor.tsx` and

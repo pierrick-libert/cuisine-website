@@ -5,7 +5,7 @@ import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 import type { RecipeInput } from '../../src/domain/types.js';
 
 function event(body: RecipeInput): APIGatewayProxyEventV2 {
-  return { body: JSON.stringify(body) } as APIGatewayProxyEventV2;
+  return { body: JSON.stringify(body) } as unknown as APIGatewayProxyEventV2;
 }
 
 describe('POST /recipes (US1)', () => {

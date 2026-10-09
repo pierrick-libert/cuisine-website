@@ -1,4 +1,5 @@
 import { IngredientLineRow } from './IngredientLineRow.js';
+import { move } from '../lib/reorder.js';
 import type { IngredientGroup, IngredientLine } from '../services/recipesApi.js';
 
 interface IngredientGroupEditorProps {
@@ -12,15 +13,6 @@ function newLine(): IngredientLine {
 
 function newGroup(): IngredientGroup {
   return { groupId: crypto.randomUUID(), name: 'New group', lines: [newLine()] };
-}
-
-function move<T>(list: T[], index: number, delta: number): T[] {
-  const target = index + delta;
-  if (target < 0 || target >= list.length) return list;
-  const next = [...list];
-  const [item] = next.splice(index, 1);
-  next.splice(target, 0, item as T);
-  return next;
 }
 
 /**
