@@ -76,24 +76,24 @@ Scenarios 1-3.
 
 ### Tests for User Story 1
 
-- [ ] T014 [P] [US1] Integration test for `POST /recipes` in
+- [X] T014 [P] [US1] Integration test for `POST /recipes` in
       `backend/tests/integration/create-recipe.test.ts`: asserts `400` when `name` is empty/missing
       (FR-002), and `201` when `ingredientGroups`/`steps` are empty arrays (FR-010 — partial drafts
       are valid)
-- [ ] T015 [P] [US1] Unit test for ingredient line validation in
+- [X] T015 [P] [US1] Unit test for ingredient line validation in
       `backend/tests/unit/ingredient-validation.test.ts`: `quantity` required, `unit` and
       `approxEquivalent` optional (FR-004, FR-005)
-- [ ] T016 [P] [US1] Unit test for category normalization in `backend/tests/unit/category.test.ts`
+- [X] T016 [P] [US1] Unit test for category normalization in `backend/tests/unit/category.test.ts`
       covering FR-008's case-insensitivity
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Implement `POST /recipes` handler in `backend/src/handlers/create-recipe.ts`
+- [X] T017 [US1] Implement `POST /recipes` handler in `backend/src/handlers/create-recipe.ts`
       (depends on T010, T011; validates FR-001/FR-002, accepts partial content per FR-010)
-- [ ] T018 [US1] Implement `GET /recipes/{id}` handler in `backend/src/handlers/get-recipe.ts`,
+- [X] T018 [US1] Implement `GET /recipes/{id}` handler in `backend/src/handlers/get-recipe.ts`,
       assembling the META item and its `LOCALE#*` items into the response shape in
       contracts/recipes-api.md (depends on T010)
-- [ ] T019 [US1] Implement `GET /recipes` (list) handler in `backend/src/handlers/list-recipes.ts`
+- [X] T019 [US1] Implement `GET /recipes` (list) handler in `backend/src/handlers/list-recipes.ts`
       using a full table Scan grouped in memory, per constitution Principle IV (depends on T010)
 - [ ] T020 [P] [US1] Build `IngredientGroupEditor` and `IngredientLineRow` components in
       `frontend/src/components/IngredientGroupEditor.tsx` and

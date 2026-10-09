@@ -1,13 +1,14 @@
 import {
   QueryCommand,
   ScanCommand,
-  PutCommand,
   TransactWriteCommand,
   TransactWriteCommandInput,
 } from '@aws-sdk/lib-dynamodb';
 import { docClient, TABLE_NAME } from './table-client.js';
 import { generateId } from '../lib/id.js';
 import { findOrCreateCategory } from './category-repository.js';
+import { ValidationError } from '../domain/errors.js';
+import { validateIngredientLine } from '../domain/ingredient.js';
 import type {
   IngredientGroup,
   Locale,
@@ -23,9 +24,6 @@ const localeKey = (recipeId: string, locale: Locale) => ({
   PK: `RECIPE#${recipeId}`,
   SK: `LOCALE#${locale}`,
 });
-
-/** Validation error surfaced as a 400 by the calling handler. */
-export class ValidationError extends Error {}
 
 function assertNonEmptyName(name: string): void {
   // FR-002: a non-empty recipe name is required before a recipe can be saved, even as a draft.
@@ -45,6 +43,7 @@ function splitInput(input: RecipeInput): { groups: IngredientGroup[]; stepsOrder
     return {
       groupId,
       lines: group.lines.map((line) => {
+        validateIngredientLine(line);
         const lineId = line.lineId ?? generateId();
         ingredientNames[lineId] = line.name;
         return {

@@ -10,6 +10,10 @@ cd backend && npm install && npm run create-table:local   # creates the single t
 cd ../frontend && npm install
 ```
 
+Local DynamoDB doesn't check credentials but the AWS SDK still requires something present; `npm
+run dev`/`create-table:local` already load `.env.example`'s dummy values automatically (copy it to
+`.env.local` to override any of them per-developer — `.env.local` is gitignored).
+
 ```bash
 cd backend && npm run dev     # local Lambda-equivalent server, e.g. on :3001
 cd frontend && npm run dev    # SPA dev server, e.g. on :5173, proxying /recipes to :3001
