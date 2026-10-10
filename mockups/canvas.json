@@ -1,0 +1,13 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1100, "h": 1780, "title": "Public — Recipe detail", "is_interactive": true },
+    { "file": "Browse.dc.html", "x": 1200, "y": 0, "w": 1100, "h": 1300, "title": "Public — Browse / category" },
+    { "file": "Backoffice.dc.html", "x": 2400, "y": 0, "w": 1100, "h": 1350, "title": "Backoffice — Recipe editor" }
+  ],
+  "annotations": [
+    { "id": "note-recipe", "x": 0, "y": -90, "w": 400, "text": "Public site — warm, editorial. Servings stepper + metric/imperial toggle are live." },
+    { "id": "note-browse", "x": 1200, "y": -90, "w": 400, "text": "Public site — category shell page; grid + search + pagination render from the client-side JSON index." },
+    { "id": "note-backoffice", "x": 2400, "y": -90, "w": 400, "text": "Backoffice — neutral, dense, functional. Single-user tool." }
+  ],
+  "launch": { "view": "canvas" }
+}
