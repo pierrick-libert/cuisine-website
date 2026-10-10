@@ -1,6 +1,7 @@
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import type { JSONContent } from '@tiptap/core';
 import { move } from '../lib/reorder.js';
 import type { Step } from '../services/recipesApi.js';
 
@@ -15,7 +16,7 @@ function newStep(): Step {
 }
 
 /** One step's Tiptap editor instance — each step is its own independent rich-text document. */
-function StepEditorItem({ step, onChange, onDelete }: { step: Step; onChange: (richText: Record<string, unknown>) => void; onDelete: () => void }) {
+function StepEditorItem({ step, onChange, onDelete }: { step: Step; onChange: (richText: JSONContent) => void; onDelete: () => void }) {
   const editor = useEditor({
     extensions: [StarterKit, Image],
     content: step.richText,

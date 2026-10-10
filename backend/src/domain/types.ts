@@ -31,6 +31,7 @@ export interface IngredientGroup {
   lines: IngredientLine[];
 }
 
+/** Only `'draft'` exists in this feature — publishing (a later feature) will add `'published'`. */
 export type RecipeStatus = 'draft';
 
 /**

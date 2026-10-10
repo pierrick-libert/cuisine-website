@@ -1,3 +1,4 @@
+import type { JSONContent } from '@tiptap/core';
 import type {
   IngredientGroup,
   RawLocaleContent,
@@ -68,9 +69,9 @@ export function mergeStepsForDisplay(stepsOrder: string[], text: RawLocaleConten
 /** The steps counterpart of {@link splitGroupsFromDisplay}. */
 export function splitStepsFromDisplay(display: Step[]): {
   stepsOrder: string[];
-  steps: Record<string, Record<string, unknown>>;
+  steps: Record<string, JSONContent>;
 } {
-  const steps: Record<string, Record<string, unknown>> = {};
+  const steps: Record<string, JSONContent> = {};
   const stepsOrder = display.map((step) => {
     steps[step.stepId] = step.richText;
     return step.stepId;

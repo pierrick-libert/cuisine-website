@@ -2,6 +2,9 @@
 // Kept as a small duplicate rather than a shared package — not worth the setup at this project's
 // size (two small apps, one developer).
 
+import type { JSONContent } from '@tiptap/core';
+
+/** A practical volume-based stand-in for a weight measurement (e.g. "250g flour ≈ 16 tbsp"). */
 export interface ApproxEquivalent {
   quantity: number;
   unit: string;
@@ -23,10 +26,10 @@ export interface IngredientGroup {
   lines: IngredientLine[];
 }
 
-/** A single recipe step — opaque Tiptap JSON rich text. */
+/** A single recipe step. */
 export interface Step {
   stepId: string;
-  richText: Record<string, unknown>;
+  richText: JSONContent;
 }
 
 /** The flat, single-locale view of a recipe the editor renders — see {@link toRecipeDetail}. */
@@ -72,7 +75,7 @@ export interface RecipeInput {
       approxEquivalent?: ApproxEquivalent | null;
     }>;
   }>;
-  steps?: Array<{ stepId?: string; richText: Record<string, unknown> }>;
+  steps?: Array<{ stepId?: string; richText: JSONContent }>;
 }
 
 /** One ingredient line as returned in the backend's assembled shape — structure only, no name. */
@@ -95,7 +98,7 @@ export interface RawLocaleContent {
   description: string;
   groupNames: Record<string, string>;
   ingredientNames: Record<string, string>;
-  steps: Record<string, Record<string, unknown>>;
+  steps: Record<string, JSONContent>;
 }
 
 /**

@@ -86,13 +86,13 @@ function splitInput(input: RecipeInput): { groups: IngredientGroup[]; stepsOrder
 
 /** Strips DynamoDB's internal `PK`/`SK` attributes before an item is returned over the API. */
 function stripKeys<T extends object>(item: T): Omit<T, 'PK' | 'SK'> {
-  const { PK: _pk, SK: _sk, ...rest } = item as T & { PK?: unknown; SK?: unknown };
+  const { PK: _pk, SK: _sk, ...rest } = item as T & { PK?: string; SK?: string };
   return rest;
 }
 
 /** Combines a META item with its LOCALE items into the `GET /recipes/\{id\}` response shape. */
 function assembleRecipe(
-  metaItem: RecipeMeta & { PK?: unknown; SK?: unknown },
+  metaItem: RecipeMeta & { PK?: string; SK?: string },
   localeItems: Array<{ SK: string } & RecipeLocaleContent>,
 ): RecipeWithLocales {
   const locales: Record<Locale, RecipeLocaleContent> = {};
