@@ -5,15 +5,22 @@ import type {
   Step,
 } from '../services/recipesApi.js';
 
+/** An empty {@link RawLocaleContent}, for a locale that has no content yet. */
 export function emptyLocaleContent(): RawLocaleContent {
   return { name: '', description: '', groupNames: {}, ingredientNames: {}, steps: {} };
 }
 
 /**
- * Combines locale-independent structure (ids, quantities, units — shared across all locales per
- * FR-009) with one locale's text, for display in the editor. Switching the active locale re-runs
- * this against the SAME structure, so unsaved structural edits (added/removed/reordered groups,
- * lines, or steps) survive a locale switch — only the text shown changes.
+ * Combines locale-independent structure with one locale's text, for display in the editor.
+ *
+ * @remarks
+ * Structure (ids, quantities, units) is shared across all locales per FR-009. Switching the
+ * active locale re-runs this against the *same* structure, so unsaved structural edits (added/
+ * removed/reordered groups or lines) survive a locale switch — only the text shown changes.
+ *
+ * @param structure - The recipe's shared ingredient structure.
+ * @param text - The active locale's text.
+ * @returns The denormalized groups `IngredientGroupEditor` renders.
  */
 export function mergeGroupsForDisplay(structure: RawRecipeGroup[], text: RawLocaleContent): IngredientGroup[] {
   return structure.map((group) => ({
@@ -23,7 +30,12 @@ export function mergeGroupsForDisplay(structure: RawRecipeGroup[], text: RawLoca
   }));
 }
 
-/** Splits the editor's denormalized display groups back into shared structure + this locale's text. */
+/**
+ * The inverse of {@link mergeGroupsForDisplay} — splits the editor's denormalized groups back
+ * into shared structure and this locale's text, after any edit (text, reorder, add, or delete).
+ *
+ * @param display - The current state of `IngredientGroupEditor`'s groups.
+ */
 export function splitGroupsFromDisplay(display: IngredientGroup[]): {
   structure: RawRecipeGroup[];
   groupNames: Record<string, string>;
@@ -44,6 +56,8 @@ export function splitGroupsFromDisplay(display: IngredientGroup[]): {
   return { structure, groupNames, ingredientNames };
 }
 
+/** The steps counterpart of {@link mergeGroupsForDisplay} — step order is shared; rich text is
+ * per-locale. */
 export function mergeStepsForDisplay(stepsOrder: string[], text: RawLocaleContent): Step[] {
   return stepsOrder.map((stepId) => ({
     stepId,
@@ -51,6 +65,7 @@ export function mergeStepsForDisplay(stepsOrder: string[], text: RawLocaleConten
   }));
 }
 
+/** The steps counterpart of {@link splitGroupsFromDisplay}. */
 export function splitStepsFromDisplay(display: Step[]): {
   stepsOrder: string[];
   steps: Record<string, Record<string, unknown>>;

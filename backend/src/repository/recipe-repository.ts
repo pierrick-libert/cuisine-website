@@ -25,14 +25,20 @@ const localeKey = (recipeId: string, locale: Locale) => ({
   SK: `LOCALE#${locale}`,
 });
 
+/**
+ * @throws {@link ValidationError} if `name` is empty — FR-002 requires a recipe name before it
+ * can be saved, even as a draft.
+ */
 function assertNonEmptyName(name: string): void {
-  // FR-002: a non-empty recipe name is required before a recipe can be saved, even as a draft.
   if (!name || !name.trim()) {
     throw new ValidationError('Recipe name is required.');
   }
 }
 
-/** Splits the denormalized request body into META structure + LOCALE text (FR-009). */
+/**
+ * Splits the editor's denormalized request body into META structure and LOCALE text (FR-009),
+ * validating each ingredient line (FR-004, FR-005) and assigning ids to any new group/line/step.
+ */
 function splitInput(input: RecipeInput): { groups: IngredientGroup[]; stepsOrder: string[]; locale: RecipeLocaleContent } {
   const groupNames: Record<string, string> = {};
   const ingredientNames: Record<string, string> = {};
@@ -78,12 +84,13 @@ function splitInput(input: RecipeInput): { groups: IngredientGroup[]; stepsOrder
   };
 }
 
-/** Strips DynamoDB's internal PK/SK keys before an item is returned over the API. */
+/** Strips DynamoDB's internal `PK`/`SK` attributes before an item is returned over the API. */
 function stripKeys<T extends object>(item: T): Omit<T, 'PK' | 'SK'> {
   const { PK: _pk, SK: _sk, ...rest } = item as T & { PK?: unknown; SK?: unknown };
   return rest;
 }
 
+/** Combines a META item with its LOCALE items into the `GET /recipes/\{id\}` response shape. */
 function assembleRecipe(
   metaItem: RecipeMeta & { PK?: unknown; SK?: unknown },
   localeItems: Array<{ SK: string } & RecipeLocaleContent>,
@@ -96,6 +103,14 @@ function assembleRecipe(
   return { ...(stripKeys(metaItem) as RecipeMeta), locales };
 }
 
+/**
+ * Creates a new draft recipe (User Story 1).
+ *
+ * @param input - The recipe's initial content, for exactly one locale.
+ * @returns The newly created recipe, in its assembled `GET`-response shape.
+ * @throws {@link ValidationError} if `input.name` is empty (FR-002), or any ingredient line fails
+ * {@link validateIngredientLine}.
+ */
 export async function createRecipe(input: RecipeInput): Promise<RecipeWithLocales> {
   assertNonEmptyName(input.name);
 
@@ -124,9 +139,17 @@ export async function createRecipe(input: RecipeInput): Promise<RecipeWithLocale
   return { ...meta, locales: { [input.locale]: locale } };
 }
 
+/**
+ * Fetches one recipe with every locale it has content for.
+ *
+ * @remarks
+ * A single `Query` by partition key returns the META item and every `LOCALE#*` item together —
+ * no secondary index needed, per constitution Principle IV.
+ *
+ * @param recipeId - The recipe's id.
+ * @returns The assembled recipe, or `null` if no recipe with that id exists.
+ */
 export async function getRecipe(recipeId: string): Promise<RecipeWithLocales | null> {
-  // A single Query by partition key returns the META item and every LOCALE#* item together —
-  // no secondary index needed, per constitution Principle IV.
   const result = await docClient.send(
     new QueryCommand({
       TableName: TABLE_NAME,
@@ -144,6 +167,21 @@ export async function getRecipe(recipeId: string): Promise<RecipeWithLocales | n
   return assembleRecipe(metaItem, localeItems);
 }
 
+/**
+ * Updates a recipe's structure and/or one locale's content (User Story 2).
+ *
+ * @remarks
+ * Replaces the recipe's entire structure (ingredient groups/lines, step order) with whatever
+ * `input` contains — there is no partial update. Locales other than `input.locale` are left
+ * untouched, which is what lets {@link createRecipe} and this function together support
+ * multi-language authoring (User Story 3) with no extra code.
+ *
+ * @param recipeId - The recipe's id.
+ * @param input - The recipe's full new structure, plus one locale's content.
+ * @returns The updated recipe, or `null` if no recipe with that id exists.
+ * @throws {@link ValidationError} if `input.name` is empty (FR-002), or any ingredient line fails
+ * {@link validateIngredientLine}.
+ */
 export async function updateRecipe(recipeId: string, input: RecipeInput): Promise<RecipeWithLocales | null> {
   assertNonEmptyName(input.name);
 
@@ -176,6 +214,12 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
   return { ...meta, locales };
 }
 
+/**
+ * Deletes a recipe and all of its locale content (User Story 2, FR-013).
+ *
+ * @param recipeId - The recipe's id.
+ * @returns `true` if the recipe existed and was deleted; `false` if it did not exist.
+ */
 export async function deleteRecipe(recipeId: string): Promise<boolean> {
   const existing = await getRecipe(recipeId);
   if (!existing) return false;
@@ -189,9 +233,17 @@ export async function deleteRecipe(recipeId: string): Promise<boolean> {
   return true;
 }
 
+/**
+ * Lists every draft recipe, for the backoffice's recipe list view.
+ *
+ * @remarks
+ * Implemented as a full table `Scan` grouped in memory, per constitution Principle IV — at this
+ * project's scale (roughly 100-1000 recipes) this is both simpler and cheaper than a secondary
+ * index.
+ *
+ * @returns One summary row per recipe, with its name resolved from whichever locale is available.
+ */
 export async function listRecipes(): Promise<RecipeSummary[]> {
-  // Full table Scan grouped in memory, per constitution Principle IV — this project's scale
-  // (roughly 100-1000 recipes) makes this both simple and cheap.
   const result = await docClient.send(new ScanCommand({ TableName: TABLE_NAME }));
   const items = result.Items ?? [];
 

@@ -4,6 +4,7 @@ import type { IngredientGroup, IngredientLine } from '../services/recipesApi.js'
 
 interface IngredientGroupEditorProps {
   groups: IngredientGroup[];
+  /** Called with the full new groups array on any add/edit/reorder/delete. */
   onChange: (groups: IngredientGroup[]) => void;
 }
 
@@ -17,6 +18,8 @@ function newGroup(): IngredientGroup {
 
 /**
  * Editable ingredient groups — add/reorder/delete groups and lines (FR-003, FR-012, FR-013).
+ *
+ * @remarks
  * Reordering uses move-up/move-down controls rather than pointer drag-and-drop, to avoid pulling
  * in a drag-and-drop library for a single-user tool (YAGNI, per the project constitution).
  */

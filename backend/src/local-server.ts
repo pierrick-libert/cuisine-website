@@ -1,3 +1,5 @@
+// Local dev entrypoint (`npm run dev`) — maps plain HTTP requests to the same Lambda handlers
+// used in production, so there's no separate "local" code path to drift from the real one.
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { handler as createRecipeHandler } from './handlers/create-recipe.js';

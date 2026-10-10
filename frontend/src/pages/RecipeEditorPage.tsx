@@ -24,11 +24,12 @@ import {
  * Create (User Story 1), edit/delete (User Story 2), and multi-locale authoring (User Story 3)
  * for a draft recipe.
  *
+ * @remarks
  * Structure (ingredient groups/lines' ids/quantities/units, step order) is kept separate from
  * per-locale text (names, descriptions, step rich text) in local state, mirroring the backend's
- * META/LOCALE split (data-model.md). This is what lets switching the active locale tab never
- * discard unsaved structural edits — merge/split helpers in lib/localeEditing.ts combine the two
- * only for display, and split them apart again on every change.
+ * META/LOCALE split (`data-model.md`). This is what lets switching the active locale tab never
+ * discard unsaved structural edits — merge/split helpers in `lib/localeEditing.ts` combine the
+ * two only for display, and split them apart again on every change.
  */
 export function RecipeEditorPage() {
   const { id } = useParams<{ id: string }>();

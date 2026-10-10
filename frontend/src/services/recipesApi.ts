@@ -7,6 +7,7 @@ export interface ApproxEquivalent {
   unit: string;
 }
 
+/** A single structured ingredient line, as displayed in the editor (structure + its name). */
 export interface IngredientLine {
   lineId: string;
   quantity: number;
@@ -15,30 +16,37 @@ export interface IngredientLine {
   approxEquivalent: ApproxEquivalent | null;
 }
 
+/** A named ingredient group, as displayed in the editor. */
 export interface IngredientGroup {
   groupId: string;
   name: string;
   lines: IngredientLine[];
 }
 
+/** A single recipe step — opaque Tiptap JSON rich text. */
 export interface Step {
   stepId: string;
   richText: Record<string, unknown>;
 }
 
+/** The flat, single-locale view of a recipe the editor renders — see {@link toRecipeDetail}. */
 export interface RecipeDetail {
   recipeId: string;
   status: 'draft';
   categoryId: string | null;
   tags: string[];
+  /** The locale this view's text is drawn from (may differ from what was requested — see
+   * {@link toRecipeDetail}). */
   locale: string;
   name: string;
   description: string;
   ingredientGroups: IngredientGroup[];
   steps: Step[];
+  /** Every locale this recipe has content for, for the `LocaleTabs` component. */
   availableLocales: string[];
 }
 
+/** One row of the `GET /recipes` listing response. */
 export interface RecipeSummary {
   recipeId: string;
   name: string;
@@ -46,6 +54,7 @@ export interface RecipeSummary {
   tags: string[];
 }
 
+/** The `POST`/`PUT /recipes` request body — see `contracts/recipes-api.md`. */
 export interface RecipeInput {
   locale: string;
   name: string;
@@ -66,17 +75,21 @@ export interface RecipeInput {
   steps?: Array<{ stepId?: string; richText: Record<string, unknown> }>;
 }
 
-// Backend's assembled GET shape (ingredientGroups hold ids/quantities, locales[x] holds text).
+/** One ingredient line as returned in the backend's assembled shape — structure only, no name. */
 export interface RawRecipeLine {
   lineId: string;
   quantity: number;
   unit: string | null;
   approxEquivalent: ApproxEquivalent | null;
 }
+
+/** One ingredient group as returned in the backend's assembled shape — structure only, no name. */
 export interface RawRecipeGroup {
   groupId: string;
   lines: RawRecipeLine[];
 }
+
+/** One locale's translatable text, as returned in the backend's assembled shape. */
 export interface RawLocaleContent {
   name: string;
   description: string;
@@ -84,6 +97,12 @@ export interface RawLocaleContent {
   ingredientNames: Record<string, string>;
   steps: Record<string, Record<string, unknown>>;
 }
+
+/**
+ * The backend's assembled `GET /recipes/\{id\}` response shape — structure
+ * ({@link RawRecipeGroup}) kept separate from every locale's text ({@link RawLocaleContent}),
+ * mirroring `data-model.md`'s META/LOCALE item split.
+ */
 export interface RawRecipe {
   recipeId: string;
   status: 'draft';
@@ -94,7 +113,15 @@ export interface RawRecipe {
   locales: Record<string, RawLocaleContent>;
 }
 
-/** Projects the backend's split META/LOCALE shape into a flat, locale-specific editor view. */
+/**
+ * Projects the backend's split META/LOCALE shape ({@link RawRecipe}) into the flat,
+ * single-locale view ({@link RecipeDetail}) most of the editor renders.
+ *
+ * @param raw - The recipe as returned by the backend.
+ * @param locale - The preferred locale to project.
+ * @returns A {@link RecipeDetail} for `locale`, or for any available locale if `raw` has no
+ * content for the one requested (`RecipeDetail.locale` reports which one was actually used).
+ */
 export function toRecipeDetail(raw: RawRecipe, locale: string): RecipeDetail {
   const content = raw.locales[locale] ?? raw.locales[Object.keys(raw.locales)[0]!];
   const resolvedLocale = raw.locales[locale] ? locale : Object.keys(raw.locales)[0]!;
@@ -120,6 +147,14 @@ export function toRecipeDetail(raw: RawRecipe, locale: string): RecipeDetail {
   };
 }
 
+/**
+ * A thin `fetch` wrapper shared by every API call below.
+ *
+ * @param path - The request path (proxied to the backend — see `vite.config.ts`).
+ * @param init - Standard `fetch` options.
+ * @returns The parsed JSON response, or `undefined` for a `204 No Content` response.
+ * @throws If the response status is not ok (2xx).
+ */
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
@@ -132,27 +167,52 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
+/** Lists every draft recipe (`GET /recipes`), for the recipe list page. */
 export async function listRecipes(): Promise<RecipeSummary[]> {
   const data = await request<{ recipes: RecipeSummary[] }>('/recipes');
   return data.recipes;
 }
 
+/**
+ * Fetches one recipe, projected to a single locale.
+ *
+ * @param recipeId - The recipe's id.
+ * @param locale - The preferred locale to project (see {@link toRecipeDetail}).
+ */
 export async function getRecipe(recipeId: string, locale = 'en'): Promise<RecipeDetail> {
   const raw = await request<RawRecipe>(`/recipes/${recipeId}`);
   return toRecipeDetail(raw, locale);
 }
 
-/** Fetches every locale's content at once — used by the editor so switching locale tabs never
- * needs a server round trip or discards unsaved structural edits. */
+/**
+ * Fetches every locale's content at once.
+ *
+ * @remarks
+ * Used by the recipe editor so switching locale tabs never needs a server round trip or discards
+ * unsaved structural edits — see `src/lib/localeEditing.ts`.
+ *
+ * @param recipeId - The recipe's id.
+ */
 export async function getRecipeRaw(recipeId: string): Promise<RawRecipe> {
   return request<RawRecipe>(`/recipes/${recipeId}`);
 }
 
+/**
+ * Creates a new draft recipe (`POST /recipes`).
+ *
+ * @param input - The recipe's initial content, for exactly one locale.
+ */
 export async function createRecipe(input: RecipeInput): Promise<RecipeDetail> {
   const raw = await request<RawRecipe>('/recipes', { method: 'POST', body: JSON.stringify(input) });
   return toRecipeDetail(raw, input.locale);
 }
 
+/**
+ * Updates a recipe's structure and/or one locale's content (`PUT /recipes/\{id\}`).
+ *
+ * @param recipeId - The recipe's id.
+ * @param input - The recipe's full new structure, plus one locale's content.
+ */
 export async function updateRecipe(recipeId: string, input: RecipeInput): Promise<RecipeDetail> {
   const raw = await request<RawRecipe>(`/recipes/${recipeId}`, {
     method: 'PUT',
@@ -161,6 +221,7 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
   return toRecipeDetail(raw, input.locale);
 }
 
+/** Deletes a recipe (`DELETE /recipes/\{id\}`). */
 export async function deleteRecipe(recipeId: string): Promise<void> {
   await request<void>(`/recipes/${recipeId}`, { method: 'DELETE' });
 }

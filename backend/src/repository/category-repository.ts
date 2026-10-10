@@ -7,9 +7,14 @@ import type { Category } from '../domain/types.js';
 const categoryKey = (categoryId: string) => ({ PK: `CATEGORY#${categoryId}`, SK: 'META' });
 
 /**
- * Finds an existing category by its case-insensitive normalized name, or creates one.
+ * Finds an existing category by its case-insensitive normalized name (FR-008), or creates one.
+ *
+ * @remarks
  * Implemented as a Scan + filter rather than a secondary index — the category count at this
  * project's scale is small, per constitution Principle IV (Simplicity Over Premature Scale).
+ *
+ * @param displayName - The category name as entered by the editor (any casing).
+ * @returns The existing matching {@link Category}, or a newly created one.
  */
 export async function findOrCreateCategory(displayName: string): Promise<Category> {
   const normalizedName = normalizeCategoryName(displayName);

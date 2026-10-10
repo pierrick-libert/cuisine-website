@@ -2,11 +2,14 @@ import type { IngredientLine } from '../services/recipesApi.js';
 
 interface IngredientLineRowProps {
   line: IngredientLine;
+  /** Called with the updated line on any field change. */
   onChange: (line: IngredientLine) => void;
   onDelete: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  /** Whether this is not already the first line in its group. */
   canMoveUp: boolean;
+  /** Whether this is not already the last line in its group. */
   canMoveDown: boolean;
 }
 

@@ -1,6 +1,8 @@
 const KNOWN_LOCALES: Record<string, string> = { en: 'EN', fr: 'FR' };
 
 interface LocaleTabsProps {
+  /** Locales the recipe currently has content for (not necessarily every locale shown as a tab —
+   * see `KNOWN_LOCALES`). */
   availableLocales: string[];
   activeLocale: string;
   onSelect: (locale: string) => void;

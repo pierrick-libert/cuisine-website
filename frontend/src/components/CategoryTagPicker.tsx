@@ -1,4 +1,5 @@
 interface CategoryTagPickerProps {
+  /** The category's display name (not its id) — the server resolves this case-insensitively. */
   categoryName: string;
   onCategoryChange: (categoryName: string) => void;
   tags: string[];

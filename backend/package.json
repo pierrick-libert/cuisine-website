@@ -27,6 +27,7 @@
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "^24.9.2",
     "eslint": "^10.12.0",
+    "eslint-plugin-tsdoc": "^0.5.4",
     "prettier": "^3.9.9",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",

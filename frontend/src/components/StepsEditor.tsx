@@ -6,6 +6,7 @@ import type { Step } from '../services/recipesApi.js';
 
 interface StepsEditorProps {
   steps: Step[];
+  /** Called with the full new steps array on any add/edit/reorder/delete. */
   onChange: (steps: Step[]) => void;
 }
 
@@ -13,6 +14,7 @@ function newStep(): Step {
   return { stepId: crypto.randomUUID(), richText: { type: 'doc', content: [{ type: 'paragraph' }] } };
 }
 
+/** One step's Tiptap editor instance — each step is its own independent rich-text document. */
 function StepEditorItem({ step, onChange, onDelete }: { step: Step; onChange: (richText: Record<string, unknown>) => void; onDelete: () => void }) {
   const editor = useEditor({
     extensions: [StarterKit, Image],
@@ -49,7 +51,13 @@ function StepEditorItem({ step, onChange, onDelete }: { step: Step; onChange: (r
   );
 }
 
-/** Rich-text (Tiptap) steps editor: bold/italic + inline images, per FR-006. */
+/**
+ * Rich-text (Tiptap) steps editor: bold/italic + inline images, per FR-006.
+ *
+ * @remarks
+ * Image insertion is by URL, not upload — an upload pipeline is out of this feature's scope (see
+ * `spec.md`'s Assumptions).
+ */
 export function StepsEditor({ steps, onChange }: StepsEditorProps) {
   return (
     <div>
