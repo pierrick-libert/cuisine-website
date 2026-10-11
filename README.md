@@ -3,7 +3,7 @@
 
 Personal, multi-language recipe website — a structured alternative to a blog/WordPress recipe tool, built for a single editor (the owner) to author recipes with real structured ingredients, and for family and friends to browse them.
 
-🚧 **Status**: in active development, not yet deployed. The backoffice (recipe authoring) runs locally; infrastructure/deployment is designed and planned (see [`specs/002-deploy-infrastructure/`](specs/002-deploy-infrastructure/)) but not yet implemented. There is no live site yet.
+🚧 **Status**: in active development, not yet deployed. The backoffice (recipe authoring) runs locally; the AWS infrastructure and CI/CD pipeline (see [`specs/002-deploy-infrastructure/`](specs/002-deploy-infrastructure/)) are implemented as code but awaiting their first real deploy. There is no live site yet.
 
 ---
 
@@ -152,10 +152,11 @@ Completed/in-progress features live under [`specs/`](specs/), each with its own 
 
 ## 🚀 Deployment
 
-**Not yet implemented** — this is exactly what [`specs/002-deploy-infrastructure/`](specs/002-deploy-infrastructure/) specifies and plans. Once built, deployment will work like this:
+Implemented as code (see [`specs/002-deploy-infrastructure/`](specs/002-deploy-infrastructure/)) but not yet deployed for real — the first deploy has to run from the owner's own machine (see [`specs/002-deploy-infrastructure/quickstart.md`](specs/002-deploy-infrastructure/quickstart.md)), after which it works like this:
 
-- **Infrastructure**: provisioned via [SST v4](https://sst.dev/) (`sst deploy --stage production`), not manually — see [`specs/002-deploy-infrastructure/plan.md`](specs/002-deploy-infrastructure/plan.md).
-- **CI/CD**: GitHub Actions — every pull request runs tests; every merge to `main` deploys automatically, authenticated to AWS via OIDC federation (no long-lived credentials stored anywhere in this repository).
+- **Infrastructure**: provisioned via [SST v4](https://sst.dev/) (`npx sst deploy --stage production`), not manually — Lambda + API Gateway HTTP API (Cognito JWT-authorized) + DynamoDB + S3 + CloudFront + Cognito User Pool, all defined in `sst.config.ts` and `infra/*.ts`.
+- **Authentication**: the backoffice (UI and API, every route) requires signing in through Cognito's Hosted UI. Self-sign-up is disabled everywhere — the only account is created manually, by the owner, through the AWS Console.
+- **CI/CD**: GitHub Actions (`.github/workflows/ci.yml`) — every pull request runs backend + frontend tests; every merge to `main` deploys automatically, authenticated to AWS via OIDC federation (no long-lived credentials stored anywhere in this repository).
 - **One-time AWS setup** (already done): the OIDC identity provider, the `CLP-GitHubActionsRole` deploy role, and its scoped permissions policy — see [`infra/iam/README.md`](infra/iam/README.md) for exactly what was provisioned and why.
 - **Secrets**: set out-of-band by the owner (`sst secret set <Name> <value> --stage production`), never passed through CI or committed to the repository.
 

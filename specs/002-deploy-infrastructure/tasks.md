@@ -122,10 +122,10 @@ description: "Task list for feature implementation"
 
 **Purpose**: Documentation and final verification across all stories.
 
-- [ ] T027 [P] Update the root `README.md`'s Deployment section to reflect the now-implemented pipeline (replace the "Not yet implemented" status with the real deploy flow), per the project's existing documentation style.
-- [ ] T028 [P] Add TSDoc to every new export introduced by this feature (`backend/src/handlers/create-image-upload-url.ts`, `frontend/src/services/auth.ts`, `frontend/src/pages/SignInCallbackPage.tsx`), consistent with the project's existing TSDoc standard (`eslint-plugin-tsdoc`, `tsdoc/syntax` lint rule).
-- [ ] T029 Run quickstart.md's full validation end-to-end (all four scenarios, in order) as final sign-off that SC-001 through SC-005 hold.
-- [ ] T030 Validate SC-006: review the repository and its full commit history (`git log -p`) for any committed AWS account id, access key, or other cloud credential capable of modifying infrastructure; confirm none exists.
+- [X] T027 [P] Update the root `README.md`'s Deployment section to reflect the now-implemented pipeline (replace the "Not yet implemented" status with the real deploy flow), per the project's existing documentation style.
+- [X] T028 [P] Add TSDoc to every new export introduced by this feature (`backend/src/handlers/create-image-upload-url.ts`, `frontend/src/services/auth.ts`, `frontend/src/pages/SignInCallbackPage.tsx`), consistent with the project's existing TSDoc standard (`eslint-plugin-tsdoc`, `tsdoc/syntax` lint rule). Both packages' `npm run lint` pass clean.
+- [ ] T029 Run quickstart.md's full validation end-to-end (all four scenarios, in order) as final sign-off that SC-001 through SC-005 hold. **Blocked on a real deploy**, same as T011/T018/T021/T026 — this is the final combined validation once those run.
+- [X] T030 Validate SC-006: reviewed the repository and its full commit history (`git log -p --all`) for the AWS account id, access-key patterns, and the raw `CLP-GitHubActionsRole` ARN — none found, committed or otherwise, in either the working tree or history.
 
 ---
 
