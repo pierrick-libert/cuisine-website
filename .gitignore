@@ -8,6 +8,7 @@ npm-debug.log*
 .env.*
 !.env.example
 coverage/
+.vitest/
 
 # Local DynamoDB
 .dynamodb/

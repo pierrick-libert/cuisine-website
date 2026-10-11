@@ -1,4 +1,4 @@
-import { table } from './storage';
+import { table, imagesBucket } from './storage';
 
 // Shared by every Lambda below — resource-linking (`link`) grants least-privilege IAM to the
 // table; `TABLE_NAME` is set explicitly so the existing handlers' `process.env.TABLE_NAME` read
@@ -46,6 +46,14 @@ const deleteRecipe = new sst.aws.Function('DeleteRecipeFunction', {
   link: [table],
 });
 
+const createImageUploadUrl = new sst.aws.Function('CreateImageUploadUrlFunction', {
+  name: 'CLP-CreateImageUploadUrl',
+  handler: 'backend/src/handlers/create-image-upload-url.handler',
+  runtime,
+  environment: { IMAGES_BUCKET_NAME: imagesBucket.name },
+  link: [imagesBucket],
+});
+
 // No explicit physical name here — API Gateway HTTP APIs use AWS-assigned opaque ids, not
 // controllable names, so the deploy role's permissions policy leaves this service unscoped
 // (Resource: "*", documented in infra/iam/README.md) rather than trying to prefix-match it.
@@ -57,9 +65,9 @@ const deleteRecipe = new sst.aws.Function('DeleteRecipeFunction', {
 export const api = new sst.aws.ApiGatewayV2('Api');
 
 /**
- * Adds the `/recipes*` routes (FR-001, FR-010 — no other API surface for this feature besides
- * `/images`, added separately in Phase 6/US4), each protected by `authorizerId` (FR-003 — every
- * route requires authentication).
+ * Adds the `/recipes*` and `/images` routes (FR-001, FR-008, FR-010 — no other API surface),
+ * each protected by `authorizerId` (FR-003 — every route requires authentication, including
+ * `/images`).
  *
  * @param authorizerId - The Cognito JWT authorizer's id, from `api.addAuthorizer(...)`.
  */
@@ -70,4 +78,5 @@ export function addRecipeRoutes(authorizerId: $util.Output<string>) {
   api.route('GET /recipes/{id}', getRecipe.arn, { auth });
   api.route('PUT /recipes/{id}', updateRecipe.arn, { auth });
   api.route('DELETE /recipes/{id}', deleteRecipe.arn, { auth });
+  api.route('POST /images', createImageUploadUrl.arn, { auth });
 }

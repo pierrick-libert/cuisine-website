@@ -8,4 +8,10 @@ export const table = new sst.aws.Dynamo('RecipesTable', {
   transform: { table: { name: 'CLP-RecipesTable' } },
 });
 
-// The images bucket (T022, User Story 4) is added here once that phase starts.
+// Publicly readable so `imageUrl` (contracts/images-api.md) is a plain, directly-retrievable
+// address — uploads themselves still require authentication, via the presigned PUT URL issued by
+// the (authenticated) POST /images endpoint, not public write access.
+export const imagesBucket = new sst.aws.Bucket('ImagesBucket', {
+  access: 'public',
+  transform: { bucket: { bucket: 'clp-images' } },
+});
