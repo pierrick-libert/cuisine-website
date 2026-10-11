@@ -38,9 +38,9 @@ description: "Task list for feature implementation"
 
 **⚠️ CRITICAL**: No user story phase can be deployed/validated until this phase is complete.
 
-- [ ] T004 Create `infra/storage.ts` defining the existing DynamoDB table (unchanged schema per data-model.md) as an SST `Dynamo` component, with its physical name explicitly set to start with `CLP-` (e.g. `CLP-RecipesTable`) — per research.md, this is required for the already-provisioned `CLP-GitHubActionsPermissions` policy to match it; matches the single-table schema already created by `backend/src/lib/create-table.ts`.
-- [ ] T005 [P] Create `infra/auth.ts` defining a Cognito User Pool + App Client as SST components: Hosted UI enabled, `selfSignUpEnabled` explicitly set to `false` (FR-004 — no self-service registration anywhere), OAuth2 Authorization Code flow configured per contracts/auth.md's sign-in flow, physical name starting with `CLP-` (e.g. `CLP-UserPool`).
-- [ ] T006 Update `sst.config.ts` to import and instantiate `infra/storage.ts` and `infra/auth.ts`.
+- [X] T004 Create `infra/storage.ts` defining the existing DynamoDB table (unchanged schema per data-model.md) as an SST `Dynamo` component, with its physical name explicitly set to start with `CLP-` (e.g. `CLP-RecipesTable`) — per research.md, this is required for the already-provisioned `CLP-GitHubActionsPermissions` policy to match it; matches the single-table schema already created by `backend/src/lib/create-table.ts`.
+- [X] T005 [P] Create `infra/auth.ts` defining a Cognito User Pool + App Client as SST components: Hosted UI enabled, `selfSignUpEnabled` explicitly set to `false` (FR-004 — no self-service registration anywhere), OAuth2 Authorization Code flow configured per contracts/auth.md's sign-in flow, physical name starting with `CLP-` (e.g. `CLP-UserPool`). Implementation note: the actual App Client (needing the backoffice's callback URL) is created via `addAuthClient(webUrl)`, exported from `infra/auth.ts` and invoked from `sst.config.ts` once `infra/web.ts`'s URL exists (T009) — the Hosted UI domain and self-sign-up-disabled User Pool itself are created here, unconditionally.
+- [X] T006 Update `sst.config.ts` to import and instantiate `infra/storage.ts` and `infra/auth.ts`.
 
 **Checkpoint**: Foundation ready — `npx sst deploy --stage production` provisions the DynamoDB table and Cognito User Pool; user story implementation can now begin.
 

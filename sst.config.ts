@@ -11,8 +11,10 @@ export default $config({
     };
   },
   async run() {
-    // Resources are added phase by phase as specs/002-deploy-infrastructure/tasks.md progresses:
-    // infra/storage.ts (T004, T022), infra/auth.ts (T005), infra/api.ts (T007, T012, T024),
-    // infra/web.ts (T008).
+    await import('./infra/storage');
+    await import('./infra/auth');
+    // infra/api.ts (T007, T012, T024) and infra/web.ts (T008) are added as those phases start —
+    // see specs/002-deploy-infrastructure/tasks.md. The Cognito app client (infra/auth.ts's
+    // `addAuthClient`) is invoked once infra/web.ts's URL exists, from here.
   },
 });
