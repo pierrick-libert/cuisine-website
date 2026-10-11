@@ -151,15 +151,23 @@ export function toRecipeDetail(raw: RawRecipe, locale: string): RecipeDetail {
 }
 
 /**
+ * The deployed API's base URL, injected at build time (`infra/web.ts`'s `VITE_API_URL`
+ * environment variable — see `specs/002-deploy-infrastructure/plan.md`). Empty in local
+ * development, where `path` is instead proxied to the local backend — see `vite.config.ts`.
+ */
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
+
+/**
  * A thin `fetch` wrapper shared by every API call below.
  *
- * @param path - The request path (proxied to the backend — see `vite.config.ts`).
+ * @param path - The request path, relative to {@link API_BASE_URL} (proxied to the local backend
+ * in development — see `vite.config.ts`).
  * @param init - Standard `fetch` options.
  * @returns The parsed JSON response, or `undefined` for a `204 No Content` response.
  * @throws If the response status is not ok (2xx).
  */
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
   });
