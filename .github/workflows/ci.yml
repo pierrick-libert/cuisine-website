@@ -1,0 +1,9 @@
+name: CI
+
+# Filled in by specs/002-deploy-infrastructure/tasks.md T019 (test job) and T020 (deploy job).
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs: {}

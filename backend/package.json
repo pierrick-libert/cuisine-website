@@ -20,7 +20,10 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1148.0",
+    "@aws-sdk/client-s3": "^3.1149.0",
     "@aws-sdk/lib-dynamodb": "^3.1148.0",
+    "@aws-sdk/s3-request-presigner": "^3.1149.0",
+    "sst": "4.17.2",
     "ulid": "^3.0.2"
   },
   "devDependencies": {

@@ -1,0 +1,12 @@
+{
+  "name": "cuisine-website",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "sst deploy --stage production"
+  },
+  "devDependencies": {
+    "sst": "4.17.2"
+  }
+}

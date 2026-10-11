@@ -12,6 +12,9 @@ coverage/
 # Local DynamoDB
 .dynamodb/
 
+# SST (local provider cache, generated types, deploy state cache)
+.sst/
+
 # Editors / OS
 .DS_Store
 Thumbs.db
