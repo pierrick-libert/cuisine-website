@@ -1,0 +1,145 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AppLambdaFunctions",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:*"
+      ],
+      "Resource": "arn:aws:lambda:eu-central-1:<ACCOUNT_ID>:function:CLP-*"
+    },
+    {
+      "Sid": "ApiGatewayAndContentDeliveryAndAuth",
+      "Effect": "Allow",
+      "Action": [
+        "apigateway:*",
+        "execute-api:*",
+        "cloudfront:*",
+        "cognito-idp:*",
+        "cognito-identity:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AppDynamoDbTable",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
+      ],
+      "Resource": "arn:aws:dynamodb:eu-central-1:<ACCOUNT_ID>:table/CLP-*"
+    },
+    {
+      "Sid": "AppS3Buckets",
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": [
+        "arn:aws:s3:::clp-*",
+        "arn:aws:s3:::clp-*/*"
+      ]
+    },
+    {
+      "Sid": "SstBootstrapResources",
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": [
+        "arn:aws:s3:::sst-state-*",
+        "arn:aws:s3:::sst-state-*/*",
+        "arn:aws:s3:::sst-asset-*",
+        "arn:aws:s3:::sst-asset-*/*"
+      ]
+    },
+    {
+      "Sid": "SstBootstrapEcr",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:CreateRepository",
+        "ecr:DescribeRepositories",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:PutImage",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload"
+      ],
+      "Resource": "arn:aws:ecr:eu-central-1:<ACCOUNT_ID>:repository/sst-asset*"
+    },
+    {
+      "Sid": "EcrAuthToken",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Logging",
+      "Effect": "Allow",
+      "Action": [
+        "logs:*"
+      ],
+      "Resource": "arn:aws:logs:eu-central-1:<ACCOUNT_ID>:log-group:/aws/lambda/CLP-*:*"
+    },
+    {
+      "Sid": "SstStateSsmParameters",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter",
+        "ssm:GetParameters",
+        "ssm:GetParametersByPath",
+        "ssm:PutParameter",
+        "ssm:DeleteParameter",
+        "ssm:AddTagsToResource"
+      ],
+      "Resource": [
+        "arn:aws:ssm:eu-central-1:<ACCOUNT_ID>:parameter/sst/passphrase/CLP/*",
+        "arn:aws:ssm:eu-central-1:<ACCOUNT_ID>:parameter/sst/bootstrap*"
+      ]
+    },
+    {
+      "Sid": "LambdaExecutionRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:GetRole",
+        "iam:UpdateRole",
+        "iam:PassRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies"
+      ],
+      "Resource": "arn:aws:iam::<ACCOUNT_ID>:role/CLP-*"
+    },
+    {
+      "Sid": "DenySelfModification",
+      "Effect": "Deny",
+      "Action": [
+        "iam:DeleteRole",
+        "iam:UpdateRole",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::<ACCOUNT_ID>:role/CLP-GitHubActionsRole"
+    },
+    {
+      "Sid": "ReadOnlyIdentity",
+      "Effect": "Allow",
+      "Action": [
+        "sts:GetCallerIdentity"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
