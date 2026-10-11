@@ -3,6 +3,7 @@
 // size (two small apps, one developer).
 
 import type { JSONContent } from '@tiptap/core';
+import { getAccessToken } from './auth.js';
 
 /** A practical volume-based stand-in for a weight measurement (e.g. "250g flour ≈ 16 tbsp"). */
 export interface ApproxEquivalent {
@@ -167,9 +168,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
  * @throws If the response status is not ok (2xx).
  */
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const accessToken = await getAccessToken();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...init?.headers,
+    },
   });
   if (!response.ok) {
     throw new Error(`Request to ${path} failed with status ${response.status}`);

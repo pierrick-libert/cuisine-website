@@ -49,10 +49,25 @@ const deleteRecipe = new sst.aws.Function('DeleteRecipeFunction', {
 // No explicit physical name here — API Gateway HTTP APIs use AWS-assigned opaque ids, not
 // controllable names, so the deploy role's permissions policy leaves this service unscoped
 // (Resource: "*", documented in infra/iam/README.md) rather than trying to prefix-match it.
+//
+// Routes aren't added here: every route requires the Cognito JWT authorizer (FR-003), which in
+// turn needs the app client's id, which needs the backoffice's deployed URL for its callback
+// (infra/web.ts) — which itself needs `api.url` to build. `addRecipeRoutes` breaks that cycle by
+// deferring route creation until the authorizer exists; see sst.config.ts's `run()`.
 export const api = new sst.aws.ApiGatewayV2('Api');
 
-api.route('POST /recipes', createRecipe.arn);
-api.route('GET /recipes', listRecipes.arn);
-api.route('GET /recipes/{id}', getRecipe.arn);
-api.route('PUT /recipes/{id}', updateRecipe.arn);
-api.route('DELETE /recipes/{id}', deleteRecipe.arn);
+/**
+ * Adds the `/recipes*` routes (FR-001, FR-010 — no other API surface for this feature besides
+ * `/images`, added separately in Phase 6/US4), each protected by `authorizerId` (FR-003 — every
+ * route requires authentication).
+ *
+ * @param authorizerId - The Cognito JWT authorizer's id, from `api.addAuthorizer(...)`.
+ */
+export function addRecipeRoutes(authorizerId: $util.Output<string>) {
+  const auth = { jwt: { authorizer: authorizerId } };
+  api.route('POST /recipes', createRecipe.arn, { auth });
+  api.route('GET /recipes', listRecipes.arn, { auth });
+  api.route('GET /recipes/{id}', getRecipe.arn, { auth });
+  api.route('PUT /recipes/{id}', updateRecipe.arn, { auth });
+  api.route('DELETE /recipes/{id}', deleteRecipe.arn, { auth });
+}

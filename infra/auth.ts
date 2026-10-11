@@ -21,6 +21,7 @@ export const userPool = new sst.aws.CognitoUserPool('UserPool', {
  */
 export function addAuthClient(webUrl: $util.Output<string>) {
   return userPool.addClient('UserPoolClient', {
+    callbackUrls: [$interpolate`${webUrl}/signin-callback`],
     transform: {
       client: (args) => {
         args.generateSecret = false;
@@ -28,7 +29,6 @@ export function addAuthClient(webUrl: $util.Output<string>) {
         args.allowedOauthFlowsUserPoolClient = true;
         args.allowedOauthScopes = ['openid', 'email', 'profile'];
         args.supportedIdentityProviders = ['COGNITO'];
-        args.callbackUrls = [$interpolate`${webUrl}/signin-callback`];
         args.logoutUrls = [webUrl];
       },
     },
