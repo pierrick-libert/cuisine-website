@@ -1,4 +1,4 @@
-# Sunday Kitchen — Backoffice
+# Pierrick's Sunday Kitchen — Backoffice
 
 React 19 / Vite SPA for creating and editing recipes. See
 [`../specs/001-recipe-authoring/`](../specs/001-recipe-authoring/) for the spec and plan this

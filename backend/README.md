@@ -1,4 +1,4 @@
-# Sunday Kitchen — Backend
+# Pierrick's Sunday Kitchen — Backend
 
 Node 24 LTS / TypeScript Lambda handlers + DynamoDB for the backoffice recipe API. See
 [`../specs/001-recipe-authoring/`](../specs/001-recipe-authoring/) for the spec, plan, and data
