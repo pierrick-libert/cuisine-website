@@ -15,6 +15,7 @@ coverage/
 
 # SST (local provider cache, generated types, deploy state cache)
 .sst/
+sst-env.d.ts
 
 # Editors / OS
 .DS_Store

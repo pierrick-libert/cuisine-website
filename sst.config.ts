@@ -14,7 +14,7 @@ export default $config({
     await import('./infra/storage');
     const { userPool, addAuthClient } = await import('./infra/auth');
     const { api, addRecipeRoutes } = await import('./infra/api');
-    const { web, webBucket } = await import('./infra/web');
+    const { web } = await import('./infra/web');
 
     // web.url needs api.url (built in); the auth client's callback needs web.url; the authorizer
     // needs the auth client's id — this order resolves that chain without a cycle (see
@@ -35,7 +35,7 @@ export default $config({
     // own url). Instead they're dropped into the same bucket as a small JSON file, fetched by
     // frontend/src/services/auth.ts at runtime.
     new aws.s3.BucketObject('AuthConfig', {
-      bucket: webBucket.name,
+      bucket: web.nodes.assets.name,
       key: 'auth-config.json',
       contentType: 'application/json',
       cacheControl: 'no-cache',
