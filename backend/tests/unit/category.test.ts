@@ -11,3 +11,9 @@ describe('normalizeCategoryName (FR-008)', () => {
     expect(normalizeCategoryName('  Dessert  ')).toBe('dessert');
   });
 });
+
+describe('deliberate CI-failure check (not a real test, reverted)', () => {
+  it('should fail on purpose', () => {
+    expect(1).toBe(2);
+  });
+});
