@@ -30,6 +30,8 @@ jobs:
       - name: Start DynamoDB Local
         run: npm run db:local:up
         working-directory: backend
+      - name: Wait for DynamoDB Local
+        run: until curl -s http://localhost:8000 >/dev/null; do sleep 1; done
       - name: Create local table
         run: npm run create-table:local
         working-directory: backend
