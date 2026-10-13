@@ -38,6 +38,8 @@ export interface RecipeDetail {
   recipeId: string;
   status: 'draft';
   categoryId: string | null;
+  /** Resolved from {@link categoryId} for display — `null` if there is no category. */
+  categoryName: string | null;
   tags: string[];
   /** The locale this view's text is drawn from (may differ from what was requested — see
    * {@link toRecipeDetail}). */
@@ -111,6 +113,8 @@ export interface RawRecipe {
   recipeId: string;
   status: 'draft';
   categoryId: string | null;
+  /** Resolved from {@link categoryId} for display — `null` if there is no category. */
+  categoryName: string | null;
   tags: string[];
   ingredientGroups: RawRecipeGroup[];
   stepsOrder: string[];
@@ -134,6 +138,7 @@ export function toRecipeDetail(raw: RawRecipe, locale: string): RecipeDetail {
     recipeId: raw.recipeId,
     status: raw.status,
     categoryId: raw.categoryId,
+    categoryName: raw.categoryName,
     tags: raw.tags,
     locale: resolvedLocale,
     name: content?.name ?? '',

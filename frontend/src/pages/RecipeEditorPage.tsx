@@ -68,7 +68,7 @@ export function RecipeEditorPage() {
     setLoading(true);
     getRecipeRaw(id)
       .then((raw) => {
-        setCategoryName(raw.categoryId ?? ''); // categoryId shown until a name-lookup exists
+        setCategoryName(raw.categoryName ?? '');
         setTags(raw.tags);
         setStructureGroups(raw.ingredientGroups);
         setStepsOrder(raw.stepsOrder);

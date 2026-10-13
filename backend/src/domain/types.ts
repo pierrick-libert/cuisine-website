@@ -83,6 +83,9 @@ export interface Category {
  * it has content for. See `contracts/recipes-api.md`.
  */
 export interface RecipeWithLocales extends RecipeMeta {
+  /** Resolved from {@link RecipeMeta.categoryId} for display — `null` if there is no category, or
+   * if the category it referenced no longer exists. */
+  categoryName: string | null;
   locales: Record<Locale, RecipeLocaleContent>;
 }
 

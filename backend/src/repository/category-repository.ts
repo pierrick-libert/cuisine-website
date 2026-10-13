@@ -1,10 +1,21 @@
-import { PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient, TABLE_NAME } from './table-client.js';
 import { generateId } from '../lib/id.js';
 import { normalizeCategoryName } from '../domain/category.js';
 import type { Category } from '../domain/types.js';
 
 const categoryKey = (categoryId: string) => ({ PK: `CATEGORY#${categoryId}`, SK: 'META' });
+
+/**
+ * Fetches a category by id, for resolving a recipe's `categoryId` to a display name.
+ *
+ * @param categoryId - The category's id.
+ * @returns The {@link Category}, or `null` if no category with that id exists.
+ */
+export async function getCategoryById(categoryId: string): Promise<Category | null> {
+  const result = await docClient.send(new GetCommand({ TableName: TABLE_NAME, Key: categoryKey(categoryId) }));
+  return (result.Item as Category | undefined) ?? null;
+}
 
 /**
  * Finds an existing category by its case-insensitive normalized name (FR-008), or creates one.

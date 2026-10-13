@@ -50,6 +50,7 @@ Fetch one recipe with all of its locale content.
   "recipeId": "...",
   "status": "draft",
   "categoryId": "...",
+  "categoryName": "Dessert",
   "tags": ["apple", "autumn"],
   "ingredientGroups": [
     {
@@ -69,6 +70,8 @@ Fetch one recipe with all of its locale content.
   }
 }
 ```
+
+- `categoryName` is resolved from `categoryId` for display — `null` if the recipe has no category.
 
 **Response** `404`: recipe does not exist.
 
