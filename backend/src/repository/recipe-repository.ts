@@ -6,7 +6,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { docClient, TABLE_NAME } from './table-client.js';
 import { generateId } from '../lib/id.js';
-import { findOrCreateCategory } from './category-repository.js';
+import { findOrCreateCategory, getCategoryById } from './category-repository.js';
 import { ValidationError } from '../domain/errors.js';
 import { validateIngredientLine } from '../domain/ingredient.js';
 import type {
@@ -84,6 +84,13 @@ function splitInput(input: RecipeInput): { groups: IngredientGroup[]; stepsOrder
   };
 }
 
+/** Resolves a `categoryId` to its display name, for the `GET`-response shape. */
+async function resolveCategoryName(categoryId: string | null): Promise<string | null> {
+  if (!categoryId) return null;
+  const category = await getCategoryById(categoryId);
+  return category?.displayName ?? null;
+}
+
 /** Strips DynamoDB's internal `PK`/`SK` attributes before an item is returned over the API. */
 function stripKeys<T extends object>(item: T): Omit<T, 'PK' | 'SK'> {
   const { PK: _pk, SK: _sk, ...rest } = item as T & { PK?: string; SK?: string };
@@ -94,13 +101,14 @@ function stripKeys<T extends object>(item: T): Omit<T, 'PK' | 'SK'> {
 function assembleRecipe(
   metaItem: RecipeMeta & { PK?: string; SK?: string },
   localeItems: Array<{ SK: string } & RecipeLocaleContent>,
+  categoryName: string | null,
 ): RecipeWithLocales {
   const locales: Record<Locale, RecipeLocaleContent> = {};
   for (const item of localeItems) {
     const locale = item.SK.replace('LOCALE#', '');
     locales[locale] = stripKeys(item) as RecipeLocaleContent;
   }
-  return { ...(stripKeys(metaItem) as RecipeMeta), locales };
+  return { ...(stripKeys(metaItem) as RecipeMeta), categoryName, locales };
 }
 
 /**
@@ -136,7 +144,7 @@ export async function createRecipe(input: RecipeInput): Promise<RecipeWithLocale
   ];
   await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
 
-  return { ...meta, locales: { [input.locale]: locale } };
+  return { ...meta, categoryName: category?.displayName ?? null, locales: { [input.locale]: locale } };
 }
 
 /**
@@ -164,7 +172,8 @@ export async function getRecipe(recipeId: string): Promise<RecipeWithLocales | n
   const localeItems = items.filter((item) => (item.SK as string).startsWith('LOCALE#')) as Array<
     { SK: string } & RecipeLocaleContent
   >;
-  return assembleRecipe(metaItem, localeItems);
+  const categoryName = await resolveCategoryName(metaItem.categoryId);
+  return assembleRecipe(metaItem, localeItems, categoryName);
 }
 
 /**
@@ -189,14 +198,24 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
   if (!existing) return null;
 
   const { groups, stepsOrder, locale } = splitInput(input);
-  const category = input.categoryName !== undefined && input.categoryName !== null
-    ? await findOrCreateCategory(input.categoryName)
-    : null;
+
+  // input.categoryName: omitted leaves the category unchanged, `null` clears it, a string
+  // finds-or-creates it (see RecipeInput's doc comment).
+  let categoryId = existing.categoryId;
+  let categoryName = existing.categoryName;
+  if (input.categoryName === null) {
+    categoryId = null;
+    categoryName = null;
+  } else if (input.categoryName !== undefined) {
+    const category = await findOrCreateCategory(input.categoryName);
+    categoryId = category.categoryId;
+    categoryName = category.displayName;
+  }
 
   const meta: RecipeMeta = {
     recipeId,
     status: existing.status,
-    categoryId: category ? category.categoryId : existing.categoryId,
+    categoryId,
     tags: input.tags ?? existing.tags,
     ingredientGroups: groups,
     stepsOrder,
@@ -211,7 +230,7 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
   await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
 
   const locales = { ...existing.locales, [input.locale]: locale };
-  return { ...meta, locales };
+  return { ...meta, categoryName, locales };
 }
 
 /**

@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+      - name: Backend typecheck
+        run: npm run typecheck
+        working-directory: backend
+      - name: Backend lint
+        run: npm run lint
+        working-directory: backend
+      - name: Start DynamoDB Local
+        run: npm run db:local:up
+        working-directory: backend
+      - name: Wait for DynamoDB Local
+        run: until curl -s http://localhost:8000 >/dev/null; do sleep 1; done
+      - name: Create local table
+        run: npm run create-table:local
+        working-directory: backend
+      - name: Backend tests
+        run: npm test
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+      - name: Frontend typecheck
+        run: npx tsc --noEmit
+        working-directory: frontend
+      - name: Frontend lint
+        run: npm run lint
+        working-directory: frontend
+      - name: Frontend tests
+        run: npm test
+        working-directory: frontend
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: eu-central-1
+
+      - name: Install root dependencies
+        run: npm ci
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Deploy
+        run: npx sst deploy --stage production

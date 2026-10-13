@@ -8,9 +8,14 @@ npm-debug.log*
 .env.*
 !.env.example
 coverage/
+.vitest/
 
 # Local DynamoDB
 .dynamodb/
+
+# SST (local provider cache, generated types, deploy state cache)
+.sst/
+sst-env.d.ts
 
 # Editors / OS
 .DS_Store

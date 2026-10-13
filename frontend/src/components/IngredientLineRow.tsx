@@ -14,10 +14,17 @@ interface IngredientLineRowProps {
 }
 
 const inputStyle: React.CSSProperties = {
-  border: '1px solid #ddd',
+  border: '1px solid var(--color-border-lighter)',
   borderRadius: 6,
   padding: '6px 8px',
   fontSize: 13,
+};
+
+const iconButtonStyle: React.CSSProperties = {
+  border: 'none',
+  background: 'none',
+  cursor: 'pointer',
+  color: 'var(--color-text-faint)',
 };
 
 /** A single ingredient row: quantity/unit/name, plus the optional approximate equivalent. */
@@ -32,10 +39,10 @@ export function IngredientLineRow({
 }: IngredientLineRowProps) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
-      <button type="button" aria-label="Move ingredient up" disabled={!canMoveUp} onClick={onMoveUp}>
+      <button type="button" aria-label="Move ingredient up" disabled={!canMoveUp} onClick={onMoveUp} style={iconButtonStyle}>
         ↑
       </button>
-      <button type="button" aria-label="Move ingredient down" disabled={!canMoveDown} onClick={onMoveDown}>
+      <button type="button" aria-label="Move ingredient down" disabled={!canMoveDown} onClick={onMoveDown} style={iconButtonStyle}>
         ↓
       </button>
       <input
@@ -59,6 +66,12 @@ export function IngredientLineRow({
         onChange={(e) => onChange({ ...line, name: e.target.value })}
         style={{ ...inputStyle, flex: 1 }}
       />
+      <span
+        title="Approximate equivalent (optional) — e.g. a volume measure for a weight quantity"
+        style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-faint)', borderLeft: '1px solid var(--color-border-lighter)', paddingLeft: 8, marginLeft: 2 }}
+      >
+        ≈
+      </span>
       <input
         aria-label="Approximate equivalent quantity (optional)"
         type="number"
@@ -91,7 +104,7 @@ export function IngredientLineRow({
         }
         style={{ ...inputStyle, width: 56 }}
       />
-      <button type="button" aria-label="Delete ingredient" onClick={onDelete} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>
+      <button type="button" aria-label="Delete ingredient" onClick={onDelete} style={iconButtonStyle}>
         ✕
       </button>
     </div>

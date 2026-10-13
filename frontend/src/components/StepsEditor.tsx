@@ -23,31 +23,65 @@ function StepEditorItem({ step, onChange, onDelete }: { step: Step; onChange: (r
     onUpdate: ({ editor }) => onChange(editor.getJSON()),
   });
 
+  const toolbarButtonStyle: React.CSSProperties = {
+    width: 28,
+    height: 28,
+    borderRadius: 5,
+    border: 'none',
+    background: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 13,
+    cursor: 'pointer',
+    color: 'var(--color-text)',
+  };
+
   return (
-    <div style={{ border: '1px solid #e5e5e5', borderRadius: 9, padding: '10px 12px', marginBottom: 12 }}>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-        <button type="button" aria-label="Bold" onClick={() => editor?.chain().focus().toggleBold().run()} style={{ fontWeight: 700 }}>
+    <div style={{ border: '1px solid var(--color-border-light)', borderRadius: 9, marginBottom: 12, overflow: 'hidden' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 4,
+          padding: 8,
+          background: 'var(--color-bg)',
+          borderBottom: '1px solid var(--color-border-light)',
+        }}
+      >
+        <button type="button" aria-label="Bold" onClick={() => editor?.chain().focus().toggleBold().run()} style={{ ...toolbarButtonStyle, fontWeight: 700 }}>
           B
         </button>
-        <button type="button" aria-label="Italic" onClick={() => editor?.chain().focus().toggleItalic().run()} style={{ fontStyle: 'italic' }}>
+        <button type="button" aria-label="Italic" onClick={() => editor?.chain().focus().toggleItalic().run()} style={{ ...toolbarButtonStyle, fontStyle: 'italic' }}>
           I
         </button>
         <button
           type="button"
+          aria-label="Bullet list"
+          onClick={() => editor?.chain().focus().toggleBulletList().run()}
+          style={toolbarButtonStyle}
+        >
+          •≡
+        </button>
+        <button
+          type="button"
+          aria-label="Insert image"
           onClick={() => {
             // Image upload infrastructure is out of this feature's scope (see spec.md
             // Assumptions) — insert by URL in the meantime.
             const url = window.prompt('Image URL');
             if (url) editor?.chain().focus().setImage({ src: url }).run();
           }}
+          style={toolbarButtonStyle}
         >
-          Image
+          🖼
         </button>
-        <button type="button" aria-label="Delete step" onClick={onDelete} style={{ marginLeft: 'auto', border: 'none', background: 'none' }}>
+        <button type="button" aria-label="Delete step" onClick={onDelete} style={{ ...toolbarButtonStyle, marginLeft: 'auto', color: 'var(--color-text-faint)' }}>
           ✕
         </button>
       </div>
-      <EditorContent editor={editor} />
+      <div style={{ padding: 16, fontSize: 13.5, lineHeight: 1.7 }}>
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 }
@@ -64,9 +98,15 @@ export function StepsEditor({ steps, onChange }: StepsEditorProps) {
     <div>
       {steps.map((step, index) => (
         <div key={step.stepId} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', paddingTop: 8 }}>
-            <span style={{ fontWeight: 700, fontSize: 13, textAlign: 'center' }}>{index + 1}</span>
-            <button type="button" aria-label="Move step up" disabled={index === 0} onClick={() => onChange(move(steps, index, -1))}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 8, color: 'var(--color-text-faint)' }}>
+            <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text)' }}>{index + 1}</span>
+            <button
+              type="button"
+              aria-label="Move step up"
+              disabled={index === 0}
+              onClick={() => onChange(move(steps, index, -1))}
+              style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'inherit' }}
+            >
               ↑
             </button>
             <button
@@ -74,6 +114,7 @@ export function StepsEditor({ steps, onChange }: StepsEditorProps) {
               aria-label="Move step down"
               disabled={index === steps.length - 1}
               onClick={() => onChange(move(steps, index, 1))}
+              style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'inherit' }}
             >
               ↓
             </button>
@@ -90,7 +131,7 @@ export function StepsEditor({ steps, onChange }: StepsEditorProps) {
       <button
         type="button"
         onClick={() => onChange([...steps, newStep()])}
-        style={{ fontSize: 12.5, fontWeight: 700, color: '#40704f', background: 'none', border: 'none', cursor: 'pointer' }}
+        style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer' }}
       >
         + Add step
       </button>

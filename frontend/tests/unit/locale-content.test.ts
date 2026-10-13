@@ -6,6 +6,7 @@ function fixture(): RawRecipe {
     recipeId: 'r1',
     status: 'draft',
     categoryId: null,
+    categoryName: null,
     tags: [],
     ingredientGroups: [
       {

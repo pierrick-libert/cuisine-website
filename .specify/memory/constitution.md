@@ -1,16 +1,14 @@
 <!--
 Sync Impact Report
-- Version change: (none) → 1.0.0 (initial ratification)
-- Modified principles: n/a (first adoption)
-- Added sections: Core Principles (7), Technology Stack Constraints, Development Workflow, Governance
+- Version change: 1.0.0 → 1.0.1 (wording-only — project renamed to "Pierrick's Sunday Kitchen")
+- Modified principles: none
+- Added sections: none
 - Removed sections: none
-- Templates requiring updates: .specify/templates/plan-template.md (✅ consistent – generic
-  placeholders, no stack-specific assumptions to reconcile), .specify/templates/spec-template.md
-  (✅ consistent), .specify/templates/tasks-template.md (✅ consistent)
+- Templates requiring updates: none (no principle content changed)
 - Follow-up TODOs: none
 -->
 
-# Sunday Kitchen Constitution
+# Pierrick's Sunday Kitchen Constitution
 
 ## Core Principles
 
@@ -139,4 +137,4 @@ Every `/speckit-plan` MUST include a compliance check against these principles b
 implementation tasks are generated; any deviation MUST be justified in that plan's complexity
 tracking section or the deviation MUST be removed in favor of a compliant approach.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
+**Version**: 1.0.1 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-11
