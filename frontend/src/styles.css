@@ -1,0 +1,58 @@
+/* Design tokens lifted from mockups/Backoffice.dc.html (the approved reference design). */
+:root {
+  --color-bg: oklch(96% 0.003 90);
+  --color-text: oklch(22% 0.005 90);
+  --color-text-muted: oklch(50% 0.005 90);
+  --color-text-faint: oklch(55% 0.005 90);
+
+  --color-sidebar-bg: oklch(20% 0.005 90);
+  --color-sidebar-text: oklch(90% 0.003 90);
+  --color-sidebar-active-bg: oklch(30% 0.01 90);
+  --color-sidebar-footer-bg: oklch(26% 0.008 90);
+
+  --color-accent: oklch(40% 0.1 145);
+  --color-accent-hover: oklch(34% 0.1 145);
+  --color-accent-soft-bg: oklch(89% 0.05 145);
+  --color-accent-soft-text: oklch(38% 0.1 145);
+
+  --color-card-bg: oklch(99% 0 0);
+  --color-border: oklch(87% 0.005 90);
+  --color-border-light: oklch(91% 0.005 90);
+  --color-border-lighter: oklch(88% 0.005 90);
+
+  --color-tag-bg: oklch(93% 0.02 90);
+  --color-tag-text: oklch(45% 0.005 90);
+
+  --color-draft-bg: oklch(93% 0.03 85);
+  --color-draft-text: oklch(48% 0.1 75);
+
+  --color-danger: oklch(50% 0.17 25);
+
+  --font-sans: 'Karla', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+}

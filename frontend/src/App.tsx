@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
+import { Layout } from './components/Layout.js';
 import { RecipeListPage } from './pages/RecipeListPage.js';
 import { RecipeEditorPage } from './pages/RecipeEditorPage.js';
 import { SignInCallbackPage } from './pages/SignInCallbackPage.js';
@@ -11,7 +12,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
     if (!isSignedIn()) void redirectToSignIn();
   }, []);
 
-  return isSignedIn() ? children : null;
+  return isSignedIn() ? <Layout>{children}</Layout> : null;
 }
 
 export default function App() {

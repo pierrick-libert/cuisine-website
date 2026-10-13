@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 interface CategoryTagPickerProps {
   /** The category's display name (not its id) — the server resolves this case-insensitively. */
   categoryName: string;
@@ -6,12 +8,11 @@ interface CategoryTagPickerProps {
   onTagsChange: (tags: string[]) => void;
 }
 
-const chipStyle: React.CSSProperties = {
+const pillStyle: React.CSSProperties = {
   padding: '6px 13px',
   borderRadius: 999,
-  background: '#f0f0f0',
   fontSize: 12.5,
-  fontWeight: 600,
+  fontWeight: 700,
   display: 'inline-flex',
   alignItems: 'center',
   gap: 6,
@@ -22,6 +23,8 @@ const chipStyle: React.CSSProperties = {
  * free-form tags (FR-007).
  */
 export function CategoryTagPicker({ categoryName, onCategoryChange, tags, onTagsChange }: CategoryTagPickerProps) {
+  const [editingCategory, setEditingCategory] = useState(!categoryName);
+
   function addTag(value: string) {
     const trimmed = value.trim();
     if (trimmed && !tags.includes(trimmed)) onTagsChange([...tags, trimmed]);
@@ -29,29 +32,54 @@ export function CategoryTagPicker({ categoryName, onCategoryChange, tags, onTags
 
   return (
     <div>
-      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>
-        Category
-      </label>
-      <input
-        aria-label="Category"
-        value={categoryName}
-        onChange={(e) => onCategoryChange(e.target.value)}
-        placeholder="e.g. Dessert"
-        style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #ddd', marginBottom: 14, width: 200 }}
-      />
-
-      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>
-        Tags
-      </label>
+      <h2 style={{ fontSize: 15, margin: '0 0 12px' }}>Category &amp; tags</h2>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        {categoryName && !editingCategory ? (
+          <span style={{ ...pillStyle, background: 'var(--color-accent-soft-bg)', color: 'var(--color-accent-soft-text)' }}>
+            {categoryName}
+            <button
+              type="button"
+              aria-label="Change category"
+              onClick={() => setEditingCategory(true)}
+              style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, color: 'inherit' }}
+            >
+              ✕
+            </button>
+          </span>
+        ) : (
+          <input
+            aria-label="Category"
+            value={categoryName}
+            autoFocus={editingCategory && Boolean(categoryName)}
+            onChange={(e) => onCategoryChange(e.target.value)}
+            onBlur={() => setEditingCategory(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') setEditingCategory(false);
+            }}
+            placeholder="e.g. Dessert"
+            style={{
+              border: '1px dashed var(--color-border-lighter)',
+              borderRadius: 999,
+              padding: '6px 13px',
+              fontSize: 12.5,
+              fontWeight: 600,
+              background: 'transparent',
+              outline: 'none',
+              width: 120,
+            }}
+          />
+        )}
+
+        <span style={{ width: 1, alignSelf: 'stretch', background: 'var(--color-border-lighter)' }} />
+
         {tags.map((tag) => (
-          <span key={tag} style={chipStyle}>
+          <span key={tag} style={{ ...pillStyle, background: 'var(--color-tag-bg)', color: 'var(--color-tag-text)' }}>
             {tag}
             <button
               type="button"
               aria-label={`Remove tag ${tag}`}
               onClick={() => onTagsChange(tags.filter((t) => t !== tag))}
-              style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
+              style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, color: 'inherit' }}
             >
               ✕
             </button>
@@ -67,7 +95,15 @@ export function CategoryTagPicker({ categoryName, onCategoryChange, tags, onTags
               e.currentTarget.value = '';
             }
           }}
-          style={{ border: '1px dashed #ccc', borderRadius: 999, padding: '6px 13px', fontSize: 12.5, width: 110 }}
+          style={{
+            border: '1px dashed var(--color-border-lighter)',
+            borderRadius: 999,
+            padding: '6px 13px',
+            fontSize: 12.5,
+            background: 'transparent',
+            outline: 'none',
+            width: 100,
+          }}
         />
       </div>
     </div>

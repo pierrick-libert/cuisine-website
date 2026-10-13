@@ -19,6 +19,6 @@ export function SignInCallbackPage() {
   }, [searchParams]);
 
   if (status === 'done') return <Navigate to="/" replace />;
-  if (status === 'error') return <p style={{ padding: 24, color: '#b3261e' }}>Sign-in failed. Please try again.</p>;
-  return <p style={{ padding: 24 }}>Signing in…</p>;
+  if (status === 'error') return <p style={{ padding: 24, color: 'var(--color-danger)' }}>Sign-in failed. Please try again.</p>;
+  return <p style={{ padding: 24, color: 'var(--color-text-muted)' }}>Signing in…</p>;
 }

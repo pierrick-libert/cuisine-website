@@ -28,17 +28,18 @@ export function LocaleTabs({ availableLocales, activeLocale, onSelect }: LocaleT
             aria-label={`${KNOWN_LOCALES[locale] ?? locale.toUpperCase()}, ${hasContent ? 'has content' : 'no content yet'}`}
             onClick={() => onSelect(locale)}
             style={{
-              padding: '7px 14px',
+              padding: '8px 16px',
               borderRadius: '8px 8px 0 0',
-              border: '1px solid #ddd',
-              borderBottom: isActive ? 'none' : '1px solid #ddd',
-              background: isActive ? '#fff' : 'transparent',
-              fontWeight: isActive ? 700 : 500,
+              border: '1px solid var(--color-border-light)',
+              borderBottom: isActive ? 'none' : '1px solid var(--color-border-light)',
+              background: isActive ? 'var(--color-card-bg)' : 'transparent',
+              fontWeight: isActive ? 700 : 600,
               fontSize: 13,
+              color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
             }}
           >
             {KNOWN_LOCALES[locale] ?? locale.toUpperCase()}{' '}
-            <span aria-hidden="true" style={{ color: hasContent ? '#40704f' : '#bbb' }}>
+            <span aria-hidden="true" style={{ color: hasContent ? 'var(--color-accent)' : 'var(--color-border-lighter)' }}>
               {hasContent ? '●' : '○'}
             </span>
           </button>

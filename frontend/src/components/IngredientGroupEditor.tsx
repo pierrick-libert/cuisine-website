@@ -30,13 +30,14 @@ export function IngredientGroupEditor({ groups, onChange }: IngredientGroupEdito
   return (
     <div>
       {groups.map((group, groupIndex) => (
-        <div key={group.groupId} style={{ border: '1px solid #e5e5e5', borderRadius: 9, padding: '12px 14px', marginBottom: 16 }}>
+        <div key={group.groupId} style={{ border: '1px solid var(--color-border-light)', borderRadius: 9, padding: '12px 14px', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <button
               type="button"
               aria-label="Move group up"
               disabled={groupIndex === 0}
               onClick={() => onChange(move(groups, groupIndex, -1))}
+              style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-faint)' }}
             >
               ↑
             </button>
@@ -45,6 +46,7 @@ export function IngredientGroupEditor({ groups, onChange }: IngredientGroupEdito
               aria-label="Move group down"
               disabled={groupIndex === groups.length - 1}
               onClick={() => onChange(move(groups, groupIndex, 1))}
+              style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-faint)' }}
             >
               ↓
             </button>
@@ -52,13 +54,13 @@ export function IngredientGroupEditor({ groups, onChange }: IngredientGroupEdito
               aria-label="Group name"
               value={group.name}
               onChange={(e) => updateGroup(groupIndex, { ...group, name: e.target.value })}
-              style={{ fontWeight: 700, fontSize: 13, border: 'none', flex: 1 }}
+              style={{ fontWeight: 700, fontSize: 13, border: 'none', background: 'transparent', flex: 1, color: 'var(--color-text)' }}
             />
             <button
               type="button"
               aria-label="Delete group"
               onClick={() => onChange(groups.filter((_, i) => i !== groupIndex))}
-              style={{ border: 'none', background: 'none', cursor: 'pointer' }}
+              style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-faint)' }}
             >
               ✕
             </button>
@@ -86,7 +88,7 @@ export function IngredientGroupEditor({ groups, onChange }: IngredientGroupEdito
           <button
             type="button"
             onClick={() => updateGroup(groupIndex, { ...group, lines: [...group.lines, newLine()] })}
-            style={{ marginTop: 6, fontSize: 12, fontWeight: 700, color: '#40704f', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ marginTop: 6, fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer' }}
           >
             + Add ingredient
           </button>
@@ -95,7 +97,7 @@ export function IngredientGroupEditor({ groups, onChange }: IngredientGroupEdito
       <button
         type="button"
         onClick={() => onChange([...groups, newGroup()])}
-        style={{ fontSize: 12.5, fontWeight: 700, color: '#40704f', background: 'none', border: 'none', cursor: 'pointer' }}
+        style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer' }}
       >
         + Add group
       </button>

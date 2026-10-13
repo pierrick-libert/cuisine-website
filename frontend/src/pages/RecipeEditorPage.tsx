@@ -20,6 +20,22 @@ import {
   splitStepsFromDisplay,
 } from '../lib/localeEditing.js';
 
+const cardStyle: React.CSSProperties = {
+  border: '1px solid var(--color-border)',
+  borderRadius: 12,
+  padding: 20,
+  marginBottom: 24,
+  background: 'var(--color-card-bg)',
+};
+
+/** A short "N minute(s)/second(s) ago" relative time, for the "Last saved" status. */
+function timeAgo(from: Date, now: Date): string {
+  const seconds = Math.max(0, Math.round((now.getTime() - from.getTime()) / 1000));
+  if (seconds < 60) return 'just now';
+  const minutes = Math.round(seconds / 60);
+  return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+}
+
 /**
  * Create (User Story 1), edit/delete (User Story 2), and multi-locale authoring (User Story 3)
  * for a draft recipe.
@@ -45,6 +61,7 @@ export function RecipeEditorPage() {
   const [localeTexts, setLocaleTexts] = useState<Record<string, RawLocaleContent>>({ en: emptyLocaleContent() });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
   useEffect(() => {
     if (isNew || !id) return;
@@ -82,6 +99,7 @@ export function RecipeEditorPage() {
         steps: mergeStepsForDisplay(stepsOrder, activeText),
       };
       const recipe = isNew || !id ? await createRecipe(input) : await updateRecipe(id, input);
+      setLastSavedAt(new Date());
       navigate(`/recipes/${recipe.recipeId}`, { replace: true });
     } catch {
       // FR-010: saving a partial draft must still be possible — only a genuine validation
@@ -105,21 +123,38 @@ export function RecipeEditorPage() {
   const displaySteps = mergeStepsForDisplay(stepsOrder, activeText);
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
-      <Link to="/" style={{ display: 'inline-block', marginBottom: 16, color: '#40704f', fontWeight: 600, textDecoration: 'none' }}>
+    <div style={{ maxWidth: 900, padding: '26px 34px 60px' }}>
+      <Link to="/" style={{ display: 'inline-block', marginBottom: 16, fontWeight: 600, fontSize: 13.5 }}>
         ← Back to recipes
       </Link>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <input
-          aria-label="Recipe name"
-          value={activeText.name}
-          onChange={(e) => updateActiveText({ name: e.target.value })}
-          placeholder="Recipe name"
-          style={{ fontSize: 24, fontWeight: 700, border: 'none', flex: 1 }}
-        />
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              padding: '3px 9px',
+              borderRadius: 6,
+              background: 'var(--color-draft-bg)',
+              color: 'var(--color-draft-text)',
+            }}
+          >
+            DRAFT
+          </span>
+          {lastSavedAt && (
+            <span style={{ fontSize: 12.5, color: 'var(--color-text-muted)' }}>
+              Last saved {timeAgo(lastSavedAt, new Date())}
+            </span>
+          )}
+        </div>
         <div style={{ display: 'flex', gap: 10 }}>
           {!isNew && (
-            <button type="button" onClick={handleDelete} style={{ padding: '9px 16px', borderRadius: 8, border: '1px solid #ccc', background: '#fff' }}>
+            <button
+              type="button"
+              onClick={handleDelete}
+              style={{ padding: '9px 16px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-card-bg)', fontSize: 13.5, fontWeight: 600 }}
+            >
               Delete
             </button>
           )}
@@ -127,13 +162,32 @@ export function RecipeEditorPage() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: '#40704f', color: '#fff', fontWeight: 700 }}
+            style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: 'var(--color-accent)', color: '#fff', fontWeight: 700, fontSize: 13.5 }}
           >
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? 'Saving…' : 'Save changes'}
           </button>
         </div>
       </div>
-      {error && <p style={{ color: '#b3261e' }}>{error}</p>}
+      {error && <p style={{ color: 'var(--color-danger)' }}>{error}</p>}
+
+      <input
+        aria-label="Recipe name"
+        value={activeText.name}
+        onChange={(e) => updateActiveText({ name: e.target.value })}
+        placeholder="Recipe name"
+        style={{
+          width: '100%',
+          fontSize: 26,
+          fontWeight: 700,
+          border: 'none',
+          background: 'transparent',
+          outline: 'none',
+          padding: '0 0 14px',
+          borderBottom: '1px solid var(--color-border)',
+          marginBottom: 22,
+          color: 'var(--color-text)',
+        }}
+      />
 
       <div style={{ marginBottom: 16 }}>
         <LocaleTabs
@@ -148,10 +202,18 @@ export function RecipeEditorPage() {
         value={activeText.description}
         onChange={(e) => updateActiveText({ description: e.target.value })}
         placeholder="Description"
-        style={{ width: '100%', minHeight: 60, marginBottom: 20 }}
+        style={{
+          width: '100%',
+          minHeight: 60,
+          marginBottom: 20,
+          border: '1px solid var(--color-border)',
+          borderRadius: 8,
+          padding: 10,
+          fontSize: 13.5,
+        }}
       />
 
-      <div style={{ marginBottom: 20 }}>
+      <div style={cardStyle}>
         <CategoryTagPicker
           categoryName={categoryName}
           onCategoryChange={setCategoryName}
@@ -160,25 +222,29 @@ export function RecipeEditorPage() {
         />
       </div>
 
-      <h2 style={{ fontSize: 18 }}>Ingredients</h2>
-      <IngredientGroupEditor
-        groups={displayGroups}
-        onChange={(groups) => {
-          const { structure, groupNames, ingredientNames } = splitGroupsFromDisplay(groups);
-          setStructureGroups(structure);
-          updateActiveText({ groupNames, ingredientNames });
-        }}
-      />
+      <div style={cardStyle}>
+        <h2 style={{ fontSize: 15, margin: '0 0 16px' }}>Ingredients</h2>
+        <IngredientGroupEditor
+          groups={displayGroups}
+          onChange={(groups) => {
+            const { structure, groupNames, ingredientNames } = splitGroupsFromDisplay(groups);
+            setStructureGroups(structure);
+            updateActiveText({ groupNames, ingredientNames });
+          }}
+        />
+      </div>
 
-      <h2 style={{ fontSize: 18, marginTop: 24 }}>Method</h2>
-      <StepsEditor
-        steps={displaySteps}
-        onChange={(steps) => {
-          const { stepsOrder: order, steps: stepTexts } = splitStepsFromDisplay(steps);
-          setStepsOrder(order);
-          updateActiveText({ steps: stepTexts });
-        }}
-      />
+      <div style={cardStyle}>
+        <h2 style={{ fontSize: 15, margin: '0 0 16px' }}>Method</h2>
+        <StepsEditor
+          steps={displaySteps}
+          onChange={(steps) => {
+            const { stepsOrder: order, steps: stepTexts } = splitStepsFromDisplay(steps);
+            setStepsOrder(order);
+            updateActiveText({ steps: stepTexts });
+          }}
+        />
+      </div>
     </div>
   );
 }
