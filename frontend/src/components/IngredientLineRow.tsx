@@ -59,6 +59,12 @@ export function IngredientLineRow({
         onChange={(e) => onChange({ ...line, name: e.target.value })}
         style={{ ...inputStyle, flex: 1 }}
       />
+      <span
+        title="Approximate equivalent (optional) — e.g. a volume measure for a weight quantity"
+        style={{ fontSize: 11, fontWeight: 700, color: '#888', borderLeft: '1px solid #ddd', paddingLeft: 8, marginLeft: 2 }}
+      >
+        ≈
+      </span>
       <input
         aria-label="Approximate equivalent quantity (optional)"
         type="number"

@@ -2,7 +2,7 @@ import tseslint from 'typescript-eslint';
 import tsdoc from 'eslint-plugin-tsdoc';
 
 export default tseslint.config(
-  { ignores: ['dist/', 'node_modules/'] },
+  { ignores: ['dist/', 'node_modules/', 'sst-env.d.ts'] },
   ...tseslint.configs.recommended,
   {
     plugins: { tsdoc },

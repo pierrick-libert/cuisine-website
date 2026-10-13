@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { IngredientGroupEditor } from '../components/IngredientGroupEditor.js';
 import { StepsEditor } from '../components/StepsEditor.js';
 import { CategoryTagPicker } from '../components/CategoryTagPicker.js';
@@ -106,6 +106,9 @@ export function RecipeEditorPage() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
+      <Link to="/" style={{ display: 'inline-block', marginBottom: 16, color: '#40704f', fontWeight: 600, textDecoration: 'none' }}>
+        ← Back to recipes
+      </Link>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <input
           aria-label="Recipe name"
