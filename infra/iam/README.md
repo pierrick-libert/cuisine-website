@@ -92,3 +92,11 @@ The trust policy's `token.actions.githubusercontent.com:sub` condition is the on
 e.g. add a second allowed value for a `staging` branch, or switch to a `repo:...:pull_request`
 pattern if per-PR preview environments are ever added (not in the current design — see the
 deploy-pipeline design discussion).
+
+**Note (found on the first real CI deploy, 2026-10-13)**: the `sub` claim this environment's
+GitHub Actions actually presents includes numeric suffixes on the owner and repo —
+`repo:pierrick-libert@<id>/cuisine-website@<id>:ref:refs/heads/main` — not the plain
+`repo:pierrick-libert/cuisine-website:ref:refs/heads/main` a standard GitHub.com token would send.
+Confirmed via CloudTrail (the `AssumeRoleWithWebIdentity` denial recorded the exact `sub` presented).
+The condition now uses `repo:pierrick-libert*/cuisine-website*:ref:refs/heads/main` to match either
+form.
