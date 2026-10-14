@@ -19,16 +19,21 @@ involved.
 **Language/Version**: TypeScript 6.0.3 on Node 24.x LTS — unchanged from 001/002.
 
 **Primary Dependencies**: `@anthropic-ai/sdk` (0.133.0) for the Claude API call; `zod` (4.6.7) to
-define the structured-output schema via the SDK's `zodOutputFormat()` helper. No new frontend
-dependency.
+define the structured-output schema via the SDK's `zodOutputFormat()` helper. Frontend gains
+`@testing-library/react` (16.3.3), `@testing-library/jest-dom` (7.0.1), `@testing-library/user-event`
+(14.6.8), and `jsdom` (30.1.2) as devDependencies — this feature introduces the project's first
+component-rendering tests (see Testing below).
 
 **Storage**: None for this feature — the new endpoint is stateless (no DynamoDB, no S3). The
 existing recipe data model (001) and its persistence are completely unchanged.
 
-**Testing**: Vitest (existing, unchanged). The rich-text extract/reinsert tree-walking logic is
-unit-tested as pure functions (no network). The handler's integration test mocks the Anthropic
-client — no real Anthropic API calls in CI, mirroring how 002's CI test job needs no AWS
-credentials either.
+**Testing**: Vitest (existing). The rich-text extract/reinsert tree-walking logic is unit-tested as
+pure functions (no network). The handler's integration test mocks the Anthropic client — no real
+Anthropic API calls in CI, mirroring how 002's CI test job needs no AWS credentials either. On the
+frontend, this feature adds React Testing Library + jsdom (the project had no component-rendering
+tests before this) — kept deliberately small and scoped to one component: `TranslationDraftButton`
+is designed to be self-contained (owns its own loading/error/confirm-gate state) specifically so
+its tests don't need to render the much larger `RecipeEditorPage`.
 
 **Target Platform**: AWS Lambda behind the existing API Gateway HTTP API (same Cognito JWT
 authorizer as every other route) — extends 002's already-deployed infrastructure, no new AWS
@@ -94,13 +99,18 @@ backend/
         └── translate-recipe.test.ts    # NEW — Anthropic client mocked
 
 frontend/
-└── src/
-    ├── services/
-    │   └── translationApi.ts           # NEW — calls POST /translate
-    ├── components/
-    │   └── TranslationDraftButton.tsx  # NEW — the "Generate translation draft" action
-    └── pages/
-        └── RecipeEditorPage.tsx        # MODIFIED — wires the new button in
+├── src/
+│   ├── services/
+│   │   └── translationApi.ts           # NEW — calls POST /translate
+│   ├── components/
+│   │   └── TranslationDraftButton.tsx  # NEW — self-contained: loading/error/confirm-gate
+│   └── pages/
+│       └── RecipeEditorPage.tsx        # MODIFIED — wires the new button in
+├── tests/
+│   ├── setup.ts                        # NEW — jest-dom matchers for Vitest
+│   └── unit/
+│       └── TranslationDraftButton.test.tsx # NEW — React Testing Library
+└── vite.config.ts                      # MODIFIED — adds a `test` block (jsdom environment)
 
 infra/
 ├── storage.ts                          # unchanged
@@ -108,7 +118,9 @@ infra/
 ```
 
 **Structure Decision**: Follows 001/002's existing `backend/`/`frontend/`/`infra/` layout exactly —
-one new handler, one new pure-function module (the part most worth unit-testing in isolation), one
+one new handler, one new pure-function module (the part most worth unit-testing in isolation), a
+self-contained frontend component (deliberately designed to not need the full `RecipeEditorPage`
+rendered in order to test it) and its one test file, one
 new frontend service module and one new small component, and `infra/api.ts` gains one more
 function/route/secret alongside the ones already there. No new top-level directory, no
 restructuring of either package.
