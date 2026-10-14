@@ -144,3 +144,31 @@ export interface RecipeInput {
   ingredientGroups?: IngredientGroupInput[];
   steps?: StepInput[];
 }
+
+// --- POST /translate (003-translation-drafting) ---
+// Stateless: no recipeId, no persisted entity — see that feature's data-model.md.
+
+/**
+ * The `POST /translate` request body — a recipe's locale content plus which locales to translate
+ * between. See `003-translation-drafting/contracts/translate-api.md`.
+ */
+export interface TranslateInput {
+  /** e.g. `"fr"` — this endpoint is locale-agnostic; it does not validate against a known list. */
+  sourceLocale: string;
+  /** e.g. `"en"`. */
+  targetLocale: string;
+  name: string;
+  description: string;
+  groupNames: Record<string, string>;
+  ingredientNames: Record<string, string>;
+  steps: Record<string, RichTextDoc>;
+}
+
+/** The `POST /translate` response — same shape as the translatable parts of {@link TranslateInput}. */
+export interface TranslateOutput {
+  name: string;
+  description: string;
+  groupNames: Record<string, string>;
+  ingredientNames: Record<string, string>;
+  steps: Record<string, RichTextDoc>;
+}

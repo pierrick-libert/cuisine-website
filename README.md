@@ -3,7 +3,7 @@
 
 Personal, multi-language recipe website — a structured alternative to a blog/WordPress recipe tool, built for a single editor (the owner) to author recipes with real structured ingredients, and for family and friends to browse them.
 
-🚧 **Status**: in active development, not yet deployed. The backoffice (recipe authoring) runs locally; the AWS infrastructure and CI/CD pipeline (see [`specs/002-deploy-infrastructure/`](specs/002-deploy-infrastructure/)) are implemented as code but awaiting their first real deploy. There is no live site yet.
+🚧 **Status**: in active development. The backoffice (recipe authoring, with AI-assisted translation drafting) is deployed and live on real AWS infrastructure (see [`specs/002-deploy-infrastructure/`](specs/002-deploy-infrastructure/)), with every merge to `main` deploying automatically via CI/CD. The public-facing recipe site itself does not exist yet — that's the next feature.
 
 ---
 
@@ -28,7 +28,8 @@ Personal, multi-language recipe website — a structured alternative to a blog/W
 
 - **[Node.js](https://nodejs.org/)** `24.x LTS ("Krypton")` — Lambda runtime
 - **[TypeScript](https://www.typescriptlang.org/)** `6.0.3` — pinned below the newer 7.x Go-based compiler, since `typescript-eslint` doesn't support it yet
-- **[AWS SDK v3](https://github.com/aws/aws-sdk-js-v3)** (`@aws-sdk/client-dynamodb`, `@aws-sdk/lib-dynamodb`) — DynamoDB access
+- **[AWS SDK v3](https://github.com/aws/aws-sdk-js-v3)** (`@aws-sdk/client-dynamodb`, `@aws-sdk/lib-dynamodb`, `@aws-sdk/client-s3`) — DynamoDB and S3 access
+- **[Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript)** (`@anthropic-ai/sdk`) — on-demand, explicitly-triggered AI translation drafts (see [`specs/003-translation-drafting/`](specs/003-translation-drafting/)), never auto-saved or auto-published
 - **[Vitest](https://vitest.dev/)** — unit + integration tests (integration tests run against [DynamoDB Local](https://hub.docker.com/r/amazon/dynamodb-local) in Docker)
 - **[ulid](https://github.com/ulid/spec)** — sortable unique ids
 
@@ -38,9 +39,9 @@ Personal, multi-language recipe website — a structured alternative to a blog/W
 - **[Vite](https://vite.dev/)** — dev server and build
 - **[React Router](https://reactrouter.com/)** — routing
 - **[Tiptap](https://tiptap.dev/)** — rich-text editor for recipe steps
-- **[Vitest](https://vitest.dev/)** — unit tests
+- **[Vitest](https://vitest.dev/)** + **[React Testing Library](https://testing-library.com/react)** — unit and component tests
 
-### Infrastructure (planned — `infra/`, see [specs/002-deploy-infrastructure](specs/002-deploy-infrastructure/))
+### Infrastructure (`infra/`, see [specs/002-deploy-infrastructure](specs/002-deploy-infrastructure/))
 
 - **[SST v4](https://sst.dev/)** — infrastructure as code (Pulumi-based)
 - **AWS Lambda, API Gateway (HTTP API), DynamoDB, S3, CloudFront, Cognito** — eu-central-1
@@ -152,7 +153,7 @@ Completed/in-progress features live under [`specs/`](specs/), each with its own 
 
 ## 🚀 Deployment
 
-Implemented as code (see [`specs/002-deploy-infrastructure/`](specs/002-deploy-infrastructure/)) but not yet deployed for real — the first deploy has to run from the owner's own machine (see [`specs/002-deploy-infrastructure/quickstart.md`](specs/002-deploy-infrastructure/quickstart.md)), after which it works like this:
+Deployed and live on real AWS infrastructure (see [`specs/002-deploy-infrastructure/`](specs/002-deploy-infrastructure/)). It works like this:
 
 - **Infrastructure**: provisioned via [SST v4](https://sst.dev/) (`npx sst deploy --stage production`), not manually — Lambda + API Gateway HTTP API (Cognito JWT-authorized) + DynamoDB + S3 + CloudFront + Cognito User Pool, all defined in `sst.config.ts` and `infra/*.ts`.
 - **Authentication**: the backoffice (UI and API, every route) requires signing in through Cognito's Hosted UI. Self-sign-up is disabled everywhere — the only account is created manually, by the owner, through the AWS Console.
