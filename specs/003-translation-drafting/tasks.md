@@ -90,7 +90,7 @@
 ## Phase 6: Polish & Cross-Cutting Concerns
 
 - [ ] T014 [P] Add TSDoc to every new export (`rich-text-translation.ts`, `translate-recipe.ts`, `translationApi.ts`, `TranslationDraftButton.tsx`), consistent with the project's existing TSDoc standard (`eslint-plugin-tsdoc`, `tsdoc/syntax` lint rule); confirm `npm run lint` passes clean in both `backend/` and `frontend/`.
-- [ ] T015 Update the root `README.md` to mention the new translation-drafting capability, matching its existing documentation style.
+- [X] T015 Update the root `README.md` to mention the new translation-drafting capability, matching its existing documentation style. Also fixed stale "not yet deployed"/"planned" wording left over from before 002 was actually deployed this session (the Status line, the Infrastructure section header, and the Deployment section intro all still said "not yet deployed" even though the live checks earlier in this session confirmed otherwise) — adjacent and cheap to fix while editing this file, not a separate task.
 - [ ] T016 Run `quickstart.md`'s full validation end-to-end (all four scenarios) as final sign-off — requires a real deploy (`npx sst deploy --stage production`) and a real Anthropic API key set via `sst secret set AnthropicApiKey <key> --stage production`.
 
 ---
