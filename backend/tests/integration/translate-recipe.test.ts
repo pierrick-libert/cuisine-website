@@ -4,6 +4,11 @@ import type { TranslateInput } from '../../src/domain/types.js';
 
 const parseMock = vi.fn();
 
+// The handler reads Resource.AnthropicApiKey.value at module-load time — the real `sst` runtime
+// would try to decrypt a bundled resource.enc file that doesn't exist outside a real deploy, so
+// it's mocked with a fixed stand-in value instead.
+vi.mock('sst', () => ({ Resource: { AnthropicApiKey: { value: 'test-anthropic-key' } } }));
+
 // Mocked before importing the handler so `new Anthropic()` (module-load time in
 // translate-recipe.ts) picks up this fake client instead of a real one — no network calls in CI.
 vi.mock('@anthropic-ai/sdk', () => ({

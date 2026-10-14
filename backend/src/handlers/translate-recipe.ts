@@ -2,6 +2,7 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from '
 import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { z } from 'zod';
+import { Resource } from 'sst';
 import { ValidationError, TranslationError } from '../domain/errors.js';
 import { json, parseJsonBody } from '../lib/http.js';
 import { extractText, reinsertText } from '../domain/rich-text-translation.js';
@@ -9,7 +10,11 @@ import type { TranslateInput, TranslateOutput } from '../domain/types.js';
 
 const TranslationSchema = z.object({ translations: z.array(z.string()) });
 
-const client = new Anthropic();
+// Typed locally rather than relying on SST's generated `sst-env.d.ts` (which only exists after a
+// real `sst deploy`/`dev` has run — never true in CI, which this handler's own typecheck must
+// still pass). `Resource` itself is a real runtime export of the `sst` package regardless.
+const anthropicApiKey = (Resource as unknown as { AnthropicApiKey: { value: string } }).AnthropicApiKey.value;
+const client = new Anthropic({ apiKey: anthropicApiKey });
 
 /**
  * Sends every extracted string to Claude in a single call (research.md's batching decision — one

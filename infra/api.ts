@@ -57,12 +57,18 @@ const createImageUploadUrl = new sst.aws.Function('CreateImageUploadUrlFunction'
 // Stateless — translates text via the Claude API, touches no table or bucket (data-model.md:
 // "no new persisted entity"). The model name is a plain env var (not the secret) so swapping it
 // later is a one-line change here, not a secret rotation.
+//
+// The API key is passed via `link`, NOT `environment` — `link`ed secrets are encrypted into a
+// bundled file and decrypted in-memory by the `sst` runtime package (Resource.AnthropicApiKey.value
+// in the handler); a plain `environment` entry would instead show up as a literal, human-readable
+// value in the Lambda console's Environment variables tab, which defeats the point of a secret.
 const anthropicApiKey = new sst.Secret('AnthropicApiKey');
 const translateRecipe = new sst.aws.Function('TranslateRecipeFunction', {
   name: 'CLP-TranslateRecipe',
   handler: 'backend/src/handlers/translate-recipe.handler',
   runtime,
-  environment: { ANTHROPIC_API_KEY: anthropicApiKey.value, ANTHROPIC_MODEL: 'claude-sonnet-5-5' },
+  environment: { ANTHROPIC_MODEL: 'claude-sonnet-5-5' },
+  link: [anthropicApiKey],
 });
 
 // No explicit physical name here — API Gateway HTTP APIs use AWS-assigned opaque ids, not
