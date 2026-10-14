@@ -17,8 +17,8 @@
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 [P] Add `@anthropic-ai/sdk` (`^0.133.0`) and `zod` (`^4.6.7`) to `backend/package.json` dependencies, then `npm install` in `backend/`.
-- [ ] T002 [P] Add frontend component-test infrastructure: `@testing-library/react` (`^16.3.3`), `@testing-library/jest-dom` (`^7.0.1`), `@testing-library/user-event` (`^14.6.8`), and `jsdom` (`^30.1.2`) as devDependencies in `frontend/package.json`; add a `test` block to `frontend/vite.config.ts` (importing `defineConfig` from `vitest/config` instead of `vite` for proper typing) setting `environment: 'jsdom'` and `setupFiles: ['./tests/setup.ts']`; create `frontend/tests/setup.ts` importing `@testing-library/jest-dom/vitest` for the extended matchers.
+- [X] T001 [P] Add `@anthropic-ai/sdk` (`^0.133.0`) and `zod` (`^4.6.7`) to `backend/package.json` dependencies, then `npm install` in `backend/`.
+- [X] T002 [P] Add frontend component-test infrastructure: `@testing-library/react` (`^16.3.3`), `@testing-library/jest-dom` (`^7.0.1`), `@testing-library/user-event` (`^14.6.8`), and `jsdom` (`^30.1.2`) as devDependencies in `frontend/package.json`; add a `test` block to `frontend/vite.config.ts` (importing `defineConfig` from `vitest/config` instead of `vite` for proper typing) setting `environment: 'jsdom'` and `setupFiles: ['./tests/setup.ts']`; create `frontend/tests/setup.ts` importing `@testing-library/jest-dom/vitest` for the extended matchers. Verified: all 15 existing frontend tests still pass under jsdom, typecheck and lint clean.
 
 **Checkpoint**: Backend can call the Anthropic API; frontend can render and test a React component.
 
