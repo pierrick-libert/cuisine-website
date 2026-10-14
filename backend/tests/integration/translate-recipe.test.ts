@@ -93,6 +93,70 @@ describe('POST /translate', () => {
     expect(result.statusCode).toBe(502);
   });
 
+  it('preserves mixed formatting (bold, bullet list, image) end-to-end (US2, SC-002)', async () => {
+    parseMock.mockResolvedValue({
+      parsed_output: {
+        translations: ['Apple Tart', '', 'Mix ', 'the flour', 'Step 1', 'Step 2'],
+      },
+    });
+
+    const result = await handler(
+      event({
+        sourceLocale: 'fr',
+        targetLocale: 'en',
+        name: 'Tarte aux pommes',
+        description: '',
+        groupNames: {},
+        ingredientNames: {},
+        steps: {
+          s1: {
+            type: 'doc',
+            content: [
+              {
+                type: 'paragraph',
+                content: [
+                  { type: 'text', text: 'Mélanger ' },
+                  { type: 'text', text: 'la farine', marks: [{ type: 'bold' }] },
+                ],
+              },
+              {
+                type: 'bulletList',
+                content: [
+                  { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Étape 1' }] }] },
+                  { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Étape 2' }] }] },
+                ],
+              },
+              { type: 'paragraph', content: [{ type: 'image', attrs: { src: 'https://example.com/tart.png' } }] },
+            ],
+          },
+        },
+      }),
+    );
+
+    expect(result.statusCode).toBe(200);
+    const body = parseBody<{ steps: Record<string, unknown> }>(result);
+    expect(body.steps.s1).toEqual({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Mix ' },
+            { type: 'text', text: 'the flour', marks: [{ type: 'bold' }] },
+          ],
+        },
+        {
+          type: 'bulletList',
+          content: [
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Step 1' }] }] },
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Step 2' }] }] },
+          ],
+        },
+        { type: 'paragraph', content: [{ type: 'image', attrs: { src: 'https://example.com/tart.png' } }] },
+      ],
+    });
+  });
+
   it('fails clearly (502) when the Anthropic call itself errors', async () => {
     parseMock.mockRejectedValue(new Error('network error'));
 
