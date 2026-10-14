@@ -54,6 +54,17 @@ const createImageUploadUrl = new sst.aws.Function('CreateImageUploadUrlFunction'
   link: [imagesBucket],
 });
 
+// Stateless — translates text via the Claude API, touches no table or bucket (data-model.md:
+// "no new persisted entity"). The model name is a plain env var (not the secret) so swapping it
+// later is a one-line change here, not a secret rotation.
+const anthropicApiKey = new sst.Secret('AnthropicApiKey');
+const translateRecipe = new sst.aws.Function('TranslateRecipeFunction', {
+  name: 'CLP-TranslateRecipe',
+  handler: 'backend/src/handlers/translate-recipe.handler',
+  runtime,
+  environment: { ANTHROPIC_API_KEY: anthropicApiKey.value, ANTHROPIC_MODEL: 'claude-sonnet-5-5' },
+});
+
 // No explicit physical name here — API Gateway HTTP APIs use AWS-assigned opaque ids, not
 // controllable names, so the deploy role's permissions policy leaves this service unscoped
 // (Resource: "*", documented in infra/iam/README.md) rather than trying to prefix-match it.
@@ -65,9 +76,9 @@ const createImageUploadUrl = new sst.aws.Function('CreateImageUploadUrlFunction'
 export const api = new sst.aws.ApiGatewayV2('Api');
 
 /**
- * Adds the `/recipes*` and `/images` routes (FR-001, FR-008, FR-010 — no other API surface),
- * each protected by `authorizerId` (FR-003 — every route requires authentication, including
- * `/images`).
+ * Adds the `/recipes*`, `/images`, and `/translate` routes (no other API surface — see each
+ * feature's FR-0XX requirements), each protected by `authorizerId` (every route requires
+ * authentication, with no exceptions).
  *
  * @param authorizerId - The Cognito JWT authorizer's id, from `api.addAuthorizer(...)`.
  */
@@ -79,4 +90,5 @@ export function addRecipeRoutes(authorizerId: $util.Output<string>) {
   api.route('PUT /recipes/{id}', updateRecipe.arn, { auth });
   api.route('DELETE /recipes/{id}', deleteRecipe.arn, { auth });
   api.route('POST /images', createImageUploadUrl.arn, { auth });
+  api.route('POST /translate', translateRecipe.arn, { auth });
 }

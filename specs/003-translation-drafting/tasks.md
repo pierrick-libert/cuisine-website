@@ -30,7 +30,7 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T003 In `infra/api.ts`: declare `const anthropicApiKey = new sst.Secret('AnthropicApiKey')`; create a `CLP-Translate` SST `Function` (`nodejs24.x` runtime, `handler: 'backend/src/handlers/translate-recipe.handler'`, `environment: { ANTHROPIC_API_KEY: anthropicApiKey.value, ANTHROPIC_MODEL: 'claude-sonnet-5-5' }` — no `link`, this function touches no table or bucket per data-model.md's "no new persisted entity"); add `api.route('POST /translate', translateRecipe.arn, { auth })` inside the existing `addRecipeRoutes` function, protected by the same Cognito JWT authorizer as every other route (contracts/translate-api.md).
+- [X] T003 In `infra/api.ts`: declare `const anthropicApiKey = new sst.Secret('AnthropicApiKey')`; create a `CLP-Translate` SST `Function` (`nodejs24.x` runtime, `handler: 'backend/src/handlers/translate-recipe.handler'`, `environment: { ANTHROPIC_API_KEY: anthropicApiKey.value, ANTHROPIC_MODEL: 'claude-sonnet-5-5' }` — no `link`, this function touches no table or bucket per data-model.md's "no new persisted entity"); add `api.route('POST /translate', translateRecipe.arn, { auth })` inside the existing `addRecipeRoutes` function, protected by the same Cognito JWT authorizer as every other route (contracts/translate-api.md). Bundling smoke-tested via `sst diff` (fails only at the AWS-credential step, same as every prior infra change this session).
 
 **Checkpoint**: `POST /translate` exists as a routed, authenticated endpoint (its handler file is created in Phase 3 — this task's SST wiring can reference that path before the file exists).
 
