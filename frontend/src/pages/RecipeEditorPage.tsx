@@ -4,6 +4,7 @@ import { IngredientGroupEditor } from '../components/IngredientGroupEditor.js';
 import { StepsEditor } from '../components/StepsEditor.js';
 import { CategoryTagPicker } from '../components/CategoryTagPicker.js';
 import { LocaleTabs } from '../components/LocaleTabs.js';
+import { TranslationDraftButton } from '../components/TranslationDraftButton.js';
 import {
   createRecipe,
   deleteRecipe,
@@ -27,6 +28,18 @@ const cardStyle: React.CSSProperties = {
   marginBottom: 24,
   background: 'var(--color-card-bg)',
 };
+
+/** Whether a locale's content has anything an overwrite would actually lose (FR-004). */
+function hasAnyContent(content: RawLocaleContent | undefined): boolean {
+  if (!content) return false;
+  return (
+    Boolean(content.name.trim()) ||
+    Boolean(content.description.trim()) ||
+    Object.keys(content.groupNames).length > 0 ||
+    Object.keys(content.ingredientNames).length > 0 ||
+    Object.keys(content.steps).length > 0
+  );
+}
 
 /** A short "N minute(s)/second(s) ago" relative time, for the "Last saved" status. */
 function timeAgo(from: Date, now: Date): string {
@@ -189,12 +202,22 @@ export function RecipeEditorPage() {
         }}
       />
 
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12 }}>
         <LocaleTabs
           availableLocales={Object.keys(localeTexts)}
           activeLocale={activeLocale}
           onSelect={setActiveLocale}
         />
+        {activeLocale === 'fr' && (
+          <TranslationDraftButton
+            frenchContent={localeTexts.fr ?? emptyLocaleContent()}
+            hasExistingEnglishContent={hasAnyContent(localeTexts.en)}
+            onDraft={(translated) => {
+              setLocaleTexts((prev) => ({ ...prev, en: translated }));
+              setActiveLocale('en');
+            }}
+          />
+        )}
       </div>
 
       <textarea
