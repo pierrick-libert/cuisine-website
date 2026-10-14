@@ -81,7 +81,7 @@
 
 ### Tests for User Story 3
 
-- [ ] T013 [US3] Extend `frontend/tests/unit/TranslationDraftButton.test.tsx` (depends on T009): add component tests mocking `window.confirm` — declining it aborts with `translateRecipe` never called and the existing English content untouched (FR-004); accepting it proceeds with the call as normal (FR-005, verified at the button level: `onDraft` is called with a complete replacement set of fields, not a merge).
+- [X] T013 [US3] Extend `frontend/tests/unit/TranslationDraftButton.test.tsx` (depends on T009): add component tests mocking `window.confirm` — declining it aborts with `translateRecipe` never called and the existing English content untouched (FR-004); accepting it proceeds with the call as normal (FR-005, verified at the button level: `onDraft` is called with a complete replacement set of fields, not a merge). Both pass; full frontend suite now 20 tests, all green.
 
 **Checkpoint**: All three user stories are independently functional.
 

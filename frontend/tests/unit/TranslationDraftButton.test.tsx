@@ -64,4 +64,37 @@ describe('TranslationDraftButton', () => {
     await waitFor(() => expect(screen.getByText(/could not generate a translation/i)).toBeInTheDocument());
     expect(onDraft).not.toHaveBeenCalled();
   });
+
+  it('asks for confirmation before overwriting existing English content, and aborts if declined (US3, FR-004)', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const onDraft = vi.fn();
+
+    render(<TranslationDraftButton frenchContent={frenchContent()} hasExistingEnglishContent={true} onDraft={onDraft} />);
+    await userEvent.click(screen.getByRole('button'));
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(translateRecipeMock).not.toHaveBeenCalled();
+    expect(onDraft).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+
+  it('proceeds with the translation when the overwrite confirmation is accepted (US3, FR-005)', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const translated: RawLocaleContent = {
+      name: 'Apple Tart',
+      description: 'A classic tart.',
+      groupNames: {},
+      ingredientNames: {},
+      steps: {},
+    };
+    translateRecipeMock.mockResolvedValue(translated);
+    const onDraft = vi.fn();
+
+    render(<TranslationDraftButton frenchContent={frenchContent()} hasExistingEnglishContent={true} onDraft={onDraft} />);
+    await userEvent.click(screen.getByRole('button'));
+
+    await waitFor(() => expect(onDraft).toHaveBeenCalledWith(translated));
+    expect(translateRecipeMock).toHaveBeenCalledTimes(1);
+    confirmSpy.mockRestore();
+  });
 });
