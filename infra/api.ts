@@ -67,7 +67,11 @@ const translateRecipe = new sst.aws.Function('TranslateRecipeFunction', {
   name: 'CLP-TranslateRecipe',
   handler: 'backend/src/handlers/translate-recipe.handler',
   runtime,
-  environment: { ANTHROPIC_MODEL: 'claude-sonnet-5-5' },
+  // ANTHROPIC_WORKSPACE_ID: this API key is a user-scoped key (sk-ant-usr-...), not a
+  // workspace-scoped one, so the Anthropic API requires an explicit workspace id on every
+  // request (confirmed live — the first real deploy's test call failed with exactly this until
+  // this was added). Not sensitive (an identifier, not a credential), so a plain env var is fine.
+  environment: { ANTHROPIC_MODEL: 'claude-sonnet-5-5', ANTHROPIC_WORKSPACE_ID: 'wrkspc_01KQt4RPnQYXvaMUcSsNnUgG' },
   link: [anthropicApiKey],
 });
 

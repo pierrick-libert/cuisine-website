@@ -14,7 +14,12 @@ const TranslationSchema = z.object({ translations: z.array(z.string()) });
 // real `sst deploy`/`dev` has run — never true in CI, which this handler's own typecheck must
 // still pass). `Resource` itself is a real runtime export of the `sst` package regardless.
 const anthropicApiKey = (Resource as unknown as { AnthropicApiKey: { value: string } }).AnthropicApiKey.value;
-const client = new Anthropic({ apiKey: anthropicApiKey });
+// This key is user-scoped (sk-ant-usr-...), not workspace-scoped, so every request needs an
+// explicit workspace id (confirmed live — the first real call failed with exactly this error).
+const client = new Anthropic({
+  apiKey: anthropicApiKey,
+  defaultHeaders: { 'anthropic-workspace-id': process.env.ANTHROPIC_WORKSPACE_ID ?? '' },
+});
 
 /**
  * Sends every extracted string to Claude in a single call (research.md's batching decision — one
@@ -44,12 +49,19 @@ async function translateTexts(texts: string[], sourceLocale: string, targetLocal
         },
       ],
     });
-  } catch {
+  } catch (err) {
+    // Logged (not surfaced to the caller) so the real cause is diagnosable from CloudWatch — the
+    // owner-facing message intentionally stays generic.
+    console.error('Anthropic translation call failed:', err);
     throw new TranslationError('Could not generate a translation. Please try again.');
   }
 
   const translations = response.parsed_output?.translations;
   if (!translations || translations.length !== texts.length) {
+    console.error(
+      `Translation count mismatch: sent ${texts.length}, got ${translations?.length ?? 'none'}.`,
+      { refusal: response.stop_reason === 'refusal' ? response.stop_details : undefined },
+    );
     throw new TranslationError('Could not generate a translation. Please try again.');
   }
   return translations;
