@@ -14,7 +14,9 @@ vi.mock('@aws-sdk/client-s3', () => ({
 }));
 
 const { rebuildIndex } = await import('../../src/pipeline/rebuild-index.js');
-const { putPublishedSnapshot, deletePublishedSnapshot } = await import('../../src/repository/publish-repository.js');
+const { putPublishedSnapshot, deletePublishedSnapshot, listPublishedSnapshots } = await import(
+  '../../src/repository/publish-repository.js'
+);
 const { findOrCreateCategory } = await import('../../src/repository/category-repository.js');
 const { createRecipe, updateRecipe } = await import('../../src/repository/recipe-repository.js');
 const { ensureTable } = await import('./helpers.js');
@@ -103,6 +105,23 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
     const shellCall = calls.find((c) => c.Key === 'en/categories/shell-category-live.html');
     expect(shellCall).toBeDefined();
     expect(shellCall!.Body).toContain('Shell Category Live');
+  });
+
+  it('still writes an (empty) browse-index.json for a supported locale that just dropped to zero live recipes (Important 11)', async () => {
+    // Other tests in this shared-table suite leave their own 'en'/'fr' snapshots lying around —
+    // clear every existing snapshot in both supported locales first, so "zero live recipes in a
+    // supported locale" is genuinely true, not accidentally true because of test pollution.
+    for (const snapshot of await listPublishedSnapshots()) {
+      if (snapshot.locale === 'en' || snapshot.locale === 'fr') await deletePublishedSnapshot(snapshot.recipeId, snapshot.locale);
+    }
+
+    await rebuildIndex();
+
+    const calls = s3Calls();
+    const enIndexCall = calls.find((c) => c.Key === 'en/browse-index.json');
+    expect(enIndexCall).toBeDefined();
+    const body = JSON.parse(enIndexCall!.Body as string) as { recipes: unknown[] };
+    expect(body.recipes).toEqual([]);
   });
 
   it('removes a category shell once that category has no live recipe left in a locale that is otherwise still live', async () => {

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { listPublishedSnapshots } from '../repository/publish-repository.js';
 import { getCategoryById, listCategories } from '../repository/category-repository.js';
 import { slugify } from '../lib/slug.js';
+import { SUPPORTED_LOCALES } from '../lib/locales.js';
 import { renderCategoryShellPage } from '../../../public-site/src/render.js';
 import type { PublishedSnapshot } from '../domain/types.js';
 
@@ -56,12 +57,6 @@ function groupByLocale(snapshots: PublishedSnapshot[]): Map<string, PublishedSna
 }
 
 /**
- * Rebuilds the full browse/search index for every locale that currently has at least one
- * published recipe, built exclusively from the published-snapshot table (FR-013, SC-008,
- * `contracts/public-site-index.md`) — never from live draft recipe data, so it can never show
- * content ahead of what is actually rendered on the public site.
- */
-/**
  * Uploads the public site's one static client-side asset (Alpine.js browse/search logic) on
  * every run — it's never otherwise deployed (no build step writes to the public bucket; see
  * `public-site/assets/browse.js`'s own comment on why it's a plain script, not a module).
@@ -78,6 +73,13 @@ async function uploadStaticAssets(): Promise<void> {
   );
 }
 
+/**
+ * Rebuilds the full browse/search index and category shells for every supported locale
+ * (SUPPORTED_LOCALES, plus any locale a snapshot happens to exist in), built exclusively from
+ * the published-snapshot table (FR-013, SC-008, `contracts/public-site-index.md`) — never from
+ * live draft recipe data, so it can never show content ahead of what is actually rendered on the
+ * public site.
+ */
 export async function rebuildIndex(): Promise<void> {
   await uploadStaticAssets();
 
@@ -88,12 +90,17 @@ export async function rebuildIndex(): Promise<void> {
   // recipe state (FR-013, research.md).
   const snapshots = await listPublishedSnapshots();
   const byLocale = groupByLocale(snapshots);
+  // Every SUPPORTED_LOCALES entry gets an index/shell pass even with zero live recipes, so a
+  // locale that just dropped to zero doesn't keep showing its last-generated (now entirely
+  // stale) index and category shells forever (Important 11 from code review).
+  const localesToRebuild = new Set([...SUPPORTED_LOCALES, ...byLocale.keys()]);
   const categorySlugCache = new Map<string, string | null>();
   // Which (locale, categoryId) pairs currently have at least one live recipe — drives category
   // shell reconciliation below.
   const liveLocaleCategoryPairs = new Set<string>();
 
-  for (const [locale, localeSnapshots] of byLocale) {
+  for (const locale of localesToRebuild) {
+    const localeSnapshots = byLocale.get(locale) ?? [];
     const recipes: BrowseIndexEntry[] = [];
     for (const snapshot of localeSnapshots) {
       recipes.push({
@@ -116,11 +123,9 @@ export async function rebuildIndex(): Promise<void> {
     );
   }
 
-  // Reconcile category shells: for every (locale, category) pair this rebuild has any knowledge
-  // of (i.e. every locale with at least one live recipe, per the known gap documented in this
-  // feature's ledger regarding locales that have dropped to zero live recipes), create the
-  // shell if the category is live there, or remove it if not (`contracts/public-site-index.md`).
-  for (const locale of byLocale.keys()) {
+  // Reconcile category shells for the same locale set as the index above — create the shell if
+  // the category is live there, or remove it if not (`contracts/public-site-index.md`).
+  for (const locale of localesToRebuild) {
     for (const category of await listCategories()) {
       const slug = slugify(category.displayName);
       const key = `${locale}/categories/${slug}.html`;
