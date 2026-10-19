@@ -1,6 +1,7 @@
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
-import { GetCommand, PutCommand, DeleteCommand, QueryCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, DeleteCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient, TABLE_NAME } from './table-client.js';
+import { scanAllItems } from '../lib/dynamo-scan.js';
 import type { PipelineStatus, PublishedSnapshot, PublishStatus, RecipeMeta } from '../domain/types.js';
 
 const metaKey = (recipeId: string) => ({ PK: `RECIPE#${recipeId}`, SK: 'META' });
@@ -137,14 +138,12 @@ export async function getPublishedSnapshotsForRecipe(recipeId: string): Promise<
  * IV — this is what `rebuild-index.ts` reads from, never live draft recipe data (FR-013).
  */
 export async function listPublishedSnapshots(): Promise<PublishedSnapshot[]> {
-  const result = await docClient.send(
-    new ScanCommand({
-      TableName: TABLE_NAME,
-      FilterExpression: 'begins_with(SK, :prefix)',
-      ExpressionAttributeValues: { ':prefix': 'PUBLISHED#' },
-    }),
-  );
-  return (result.Items ?? []).map((item) => {
+  const items = await scanAllItems({
+    TableName: TABLE_NAME,
+    FilterExpression: 'begins_with(SK, :prefix)',
+    ExpressionAttributeValues: { ':prefix': 'PUBLISHED#' },
+  });
+  return items.map((item) => {
     const { PK: _pk, SK: _sk, ...rest } = item as PublishedSnapshot & { PK: string; SK: string };
     return rest;
   });

@@ -1,11 +1,11 @@
 import {
   QueryCommand,
-  ScanCommand,
   TransactWriteCommand,
   TransactWriteCommandInput,
 } from '@aws-sdk/lib-dynamodb';
 import { docClient, TABLE_NAME } from './table-client.js';
 import { generateId } from '../lib/id.js';
+import { scanAllItems } from '../lib/dynamo-scan.js';
 import { findOrCreateCategory, getCategoryById } from './category-repository.js';
 import { ValidationError } from '../domain/errors.js';
 import { validateIngredientLine } from '../domain/ingredient.js';
@@ -288,8 +288,7 @@ export async function deleteRecipe(recipeId: string): Promise<boolean> {
  * @returns One summary row per recipe, with its name resolved from whichever locale is available.
  */
 export async function listRecipes(): Promise<RecipeSummary[]> {
-  const result = await docClient.send(new ScanCommand({ TableName: TABLE_NAME }));
-  const items = result.Items ?? [];
+  const items = await scanAllItems({ TableName: TABLE_NAME });
 
   const metaByRecipeId = new Map<string, RecipeMeta>();
   const firstLocaleByRecipeId = new Map<string, RecipeLocaleContent>();
