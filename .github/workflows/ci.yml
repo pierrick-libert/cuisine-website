@@ -17,6 +17,23 @@ jobs:
           cache-dependency-path: |
             backend/package-lock.json
             frontend/package-lock.json
+            public-site/package-lock.json
+
+      # public-site/ must be installed before the backend tests: render-recipe.ts/rebuild-
+      # index.ts import ../../../public-site/src/* directly (a real, not mocked, @11ty/eleventy
+      # call) and resolve that package from public-site's own node_modules at test-run time.
+      - name: Install public-site dependencies
+        run: npm ci
+        working-directory: public-site
+      - name: public-site typecheck
+        run: npm run typecheck
+        working-directory: public-site
+      - name: public-site lint
+        run: npm run lint
+        working-directory: public-site
+      - name: public-site tests
+        run: npm test
+        working-directory: public-site
 
       - name: Install backend dependencies
         run: npm ci
@@ -80,6 +97,12 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
         working-directory: frontend
+      # Defense-in-depth alongside infra/pipeline.ts's nodejs.install for the Eleventy-using
+      # Lambdas — having public-site/node_modules present locally during the esbuild bundling
+      # step can't hurt even if nodejs.install alone would otherwise suffice.
+      - name: Install public-site dependencies
+        run: npm ci
+        working-directory: public-site
 
       - name: Deploy
         run: npx sst deploy --stage production

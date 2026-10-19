@@ -32,7 +32,13 @@ const environment = { TABLE_NAME: table.name, PUBLIC_BUCKET_NAME: publicSiteBuck
 // LAMBDA_TASK_ROOT at runtime); `nodejs.install` has SST install Eleventy into the package's
 // node_modules instead of trying to bundle it.
 const eleventyRenderingConfig = {
-  copyFiles: [{ from: 'public-site/templates', to: 'templates' }],
+  copyFiles: [
+    { from: 'public-site/templates', to: 'templates' },
+    // rebuild-index.ts reads this to upload it to the public bucket (Critical: it is never
+    // otherwise deployed) — only RebuildIndexFunction needs it, but it's harmless on
+    // RenderRecipeFunction too and keeps this config shared between the two.
+    { from: 'public-site/assets', to: 'assets' },
+  ],
   nodejs: { install: { '@11ty/eleventy': '3.1.7' } },
 };
 

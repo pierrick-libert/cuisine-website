@@ -27,6 +27,16 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
   beforeAll(ensureTable);
   beforeEach(() => sendMock.mockClear());
 
+  it('uploads browse.js to the public bucket (Critical: it is never otherwise deployed)', async () => {
+    await rebuildIndex();
+
+    const calls = s3Calls();
+    const assetCall = calls.find((c) => c.Key === 'assets/browse.js');
+    expect(assetCall).toBeDefined();
+    expect(assetCall!.ContentType).toBe('application/javascript');
+    expect(assetCall!.Body as string).toContain('function categoryBrowse');
+  });
+
   it('writes a browse-index.json per locale, built only from published snapshots', async () => {
     const category = await findOrCreateCategory('Desserts');
     await putPublishedSnapshot({

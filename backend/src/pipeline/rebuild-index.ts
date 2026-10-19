@@ -1,4 +1,7 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { listPublishedSnapshots } from '../repository/publish-repository.js';
 import { getCategoryById, listCategories } from '../repository/category-repository.js';
 import { slugify } from '../lib/slug.js';
@@ -7,6 +10,14 @@ import type { PublishedSnapshot } from '../domain/types.js';
 
 const s3 = new S3Client({});
 const PUBLIC_BUCKET_NAME = process.env.PUBLIC_BUCKET_NAME ?? 'clp-cuisine-website-public';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Same LAMBDA_TASK_ROOT-aware resolution as public-site/src/render.ts's TEMPLATES_DIR — this
+// file lives alongside render.ts in the same esbuild bundle (infra/pipeline.ts's copyFiles
+// copies public-site/templates AND must also carry assets/, see that file's comment).
+const ASSETS_DIR = process.env.LAMBDA_TASK_ROOT
+  ? path.join(process.env.LAMBDA_TASK_ROOT, 'assets')
+  : path.join(__dirname, '..', '..', '..', 'public-site', 'assets');
 
 interface BrowseIndexEntry {
   recipeId: string;
@@ -50,7 +61,26 @@ function groupByLocale(snapshots: PublishedSnapshot[]): Map<string, PublishedSna
  * `contracts/public-site-index.md`) — never from live draft recipe data, so it can never show
  * content ahead of what is actually rendered on the public site.
  */
+/**
+ * Uploads the public site's one static client-side asset (Alpine.js browse/search logic) on
+ * every run — it's never otherwise deployed (no build step writes to the public bucket; see
+ * `public-site/assets/browse.js`'s own comment on why it's a plain script, not a module).
+ */
+async function uploadStaticAssets(): Promise<void> {
+  const body = readFileSync(path.join(ASSETS_DIR, 'browse.js'), 'utf-8');
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: PUBLIC_BUCKET_NAME,
+      Key: 'assets/browse.js',
+      Body: body,
+      ContentType: 'application/javascript',
+    }),
+  );
+}
+
 export async function rebuildIndex(): Promise<void> {
+  await uploadStaticAssets();
+
   const snapshots = await listPublishedSnapshots();
   const byLocale = groupByLocale(snapshots);
   const categorySlugCache = new Map<string, string | null>();
