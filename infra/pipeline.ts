@@ -29,8 +29,14 @@ const environment = { TABLE_NAME: table.name, PUBLIC_BUCKET_NAME: publicSiteBuck
 // esbuild would even parse) nor @11ty/eleventy itself (dynamic requires/config loading, a poor
 // bundling candidate) survive a normal bundle. `copyFiles` places the templates at the function
 // package root (public-site/src/render.ts's TEMPLATES_DIR resolves them there via
-// LAMBDA_TASK_ROOT at runtime); `nodejs.install` has SST install Eleventy into the package's
-// node_modules instead of trying to bundle it.
+// LAMBDA_TASK_ROOT at runtime).
+//
+// Eleventy's node_modules are supplied via copyFiles from infra/.eleventy-lambda-deps/
+// (a pre-installed `npm install --omit=dev` of just `@11ty/eleventy`), not SST's own
+// `nodejs.install` — that mechanism also runs its own `npm ci` inside this deploy's subprocess
+// tree, which this environment's sandboxing blocks even though the identical command succeeds
+// run directly; `nodejs.esbuild.external` alone gets the "don't bundle this" behavor
+// `nodejs.install` would otherwise also provide.
 const eleventyRenderingConfig = {
   copyFiles: [
     { from: 'public-site/templates', to: 'templates' },
@@ -38,8 +44,9 @@ const eleventyRenderingConfig = {
     // otherwise deployed) — only RebuildIndexFunction needs it, but it's harmless on
     // RenderRecipeFunction too and keeps this config shared between the two.
     { from: 'public-site/assets', to: 'assets' },
+    { from: 'infra/.eleventy-lambda-deps/node_modules', to: 'node_modules' },
   ],
-  nodejs: { install: { '@11ty/eleventy': '3.1.7' } },
+  nodejs: { esbuild: { external: ['@11ty/eleventy'] } },
 };
 
 const renderRecipeFn = new sst.aws.Function('RenderRecipeFunction', {
