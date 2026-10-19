@@ -95,4 +95,16 @@ describe('POST /publish, POST /unpublish (004, FR-003/FR-004/FR-009)', () => {
     const sentInput = (sendMock.mock.calls[0]![0] as { input: { input: string } }).input;
     expect(JSON.parse(sentInput.input)).toEqual({ action: 'unpublish', recipeIds: [recipe.recipeId] });
   });
+
+  it('only one of two concurrent calls starts a run (Important 8: the lock is acquired atomically)', async () => {
+    sendMock.mockResolvedValue({ executionArn: 'arn:aws:states:eu-central-1:1:execution:P:race' });
+    const recipe = await createRecipe({ locale: 'en', name: 'Race Condition Recipe' });
+    await setSelectedForNextPublish(recipe.recipeId, true);
+
+    const [first, second] = await Promise.all([startPublishHandler(), startPublishHandler()]);
+    const statusCodes = [first.statusCode, second.statusCode].sort();
+
+    expect(statusCodes).toEqual([202, 409]);
+    expect(sendMock).toHaveBeenCalledTimes(1);
+  });
 });

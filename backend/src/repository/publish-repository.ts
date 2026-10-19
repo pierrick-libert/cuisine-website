@@ -164,6 +164,39 @@ export async function setPipelineStatus(status: PipelineStatus): Promise<void> {
   );
 }
 
+/**
+ * Atomically acquires the FR-009 run-lock: sets `running: true` only if no item exists yet, or
+ * the existing item has `running: false` — a single conditional write, not a separate
+ * read-then-write (Important 8 from code review: a plain `getPipelineStatus` followed by a
+ * `setPipelineStatus` has a race window two concurrent calls can both pass through).
+ *
+ * @returns `true` if the lock was acquired, `false` if a run is already in progress.
+ */
+export async function tryAcquirePipelineLock(action: PipelineStatus['action']): Promise<boolean> {
+  try {
+    await docClient.send(
+      new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: pipelineStatusKey,
+        ConditionExpression: 'attribute_not_exists(running) OR running = :false',
+        UpdateExpression: 'SET running = :true, #action = :action, startedAt = :startedAt, executionArn = :null, lastResult = :null',
+        ExpressionAttributeNames: { '#action': 'action' },
+        ExpressionAttributeValues: {
+          ':true': true,
+          ':false': false,
+          ':action': action,
+          ':startedAt': new Date().toISOString(),
+          ':null': null,
+        },
+      }),
+    );
+    return true;
+  } catch (err) {
+    if (err instanceof ConditionalCheckFailedException) return false;
+    throw err;
+  }
+}
+
 /** Removes the single `PIPELINE#STATUS` item entirely, restoring {@link getPipelineStatus}'s
  * "never run" default. Test-only — production code never deletes this item, only replaces it. */
 export async function deletePipelineStatus(): Promise<void> {

@@ -11,6 +11,7 @@ import {
   setPipelineStatus,
   setPublishStatus,
   setSelectedForNextPublish,
+  tryAcquirePipelineLock,
 } from '../../src/repository/publish-repository.js';
 import { ensureTable } from './helpers.js';
 import type { PublishedSnapshot } from '../../src/domain/types.js';
@@ -120,6 +121,50 @@ describe('publish-repository (004)', () => {
         startedAt: '2026-10-19T10:00:00Z',
         lastResult: null,
       });
+    });
+  });
+
+  describe('tryAcquirePipelineLock (Important 8: check-then-set was not atomic)', () => {
+    it('acquires the lock when no run is in progress', async () => {
+      await deletePipelineStatus();
+
+      const acquired = await tryAcquirePipelineLock('publish');
+
+      expect(acquired).toBe(true);
+      const status = await getPipelineStatus();
+      expect(status.running).toBe(true);
+      expect(status.action).toBe('publish');
+    });
+
+    it('refuses to acquire the lock when a run is already in progress', async () => {
+      await setPipelineStatus({
+        running: true,
+        executionArn: 'arn:aws:states:eu-central-1:1:execution:P:already',
+        action: 'publish',
+        startedAt: '2026-10-19T10:00:00Z',
+        lastResult: null,
+      });
+
+      const acquired = await tryAcquirePipelineLock('unpublish');
+
+      expect(acquired).toBe(false);
+      // Must not have clobbered the existing run's recorded details.
+      const status = await getPipelineStatus();
+      expect(status.action).toBe('publish');
+    });
+
+    it('can acquire again once the previous run finished (running: false)', async () => {
+      await setPipelineStatus({
+        running: false,
+        executionArn: 'arn:aws:states:eu-central-1:1:execution:P:done',
+        action: 'publish',
+        startedAt: '2026-10-19T10:00:00Z',
+        lastResult: 'succeeded',
+      });
+
+      const acquired = await tryAcquirePipelineLock('unpublish');
+
+      expect(acquired).toBe(true);
     });
   });
 });
