@@ -97,6 +97,24 @@ function stripKeys<T extends object>(item: T): Omit<T, 'PK' | 'SK'> {
   return rest;
 }
 
+/**
+ * Defaults `selectedForNextPublish`/`publishStatus` for a META item written before
+ * 004-publish-pipeline-and existed (001-003's recipes have neither field at all).
+ *
+ * @remarks
+ * Without this, a pre-004 recipe's `publishStatus` reads back `undefined`: the backoffice shows
+ * a blank status label, `PublishToggle` becomes an uncontrolled-to-controlled checkbox, and
+ * writing `undefined` back through `publish-repository.ts` (whose marshaller strips `undefined`
+ * values) can throw a `ValidationException` deep inside an unrelated catch block.
+ */
+function withPublishDefaults(meta: RecipeMeta): RecipeMeta {
+  return {
+    ...meta,
+    selectedForNextPublish: meta.selectedForNextPublish ?? false,
+    publishStatus: meta.publishStatus ?? 'not_published',
+  };
+}
+
 /** Combines a META item with its LOCALE items into the `GET /recipes/\{id\}` response shape. */
 function assembleRecipe(
   metaItem: RecipeMeta & { PK?: string; SK?: string },
@@ -108,7 +126,7 @@ function assembleRecipe(
     const locale = item.SK.replace('LOCALE#', '');
     locales[locale] = stripKeys(item) as RecipeLocaleContent;
   }
-  return { ...(stripKeys(metaItem) as RecipeMeta), categoryName, locales };
+  return { ...withPublishDefaults(stripKeys(metaItem) as RecipeMeta), categoryName, locales };
 }
 
 /**
@@ -292,7 +310,7 @@ export async function listRecipes(): Promise<RecipeSummary[]> {
     name: firstLocaleByRecipeId.get(recipeId)?.name ?? '',
     categoryId: meta.categoryId,
     tags: meta.tags,
-    selectedForNextPublish: meta.selectedForNextPublish,
-    publishStatus: meta.publishStatus,
+    selectedForNextPublish: meta.selectedForNextPublish ?? false,
+    publishStatus: meta.publishStatus ?? 'not_published',
   }));
 }

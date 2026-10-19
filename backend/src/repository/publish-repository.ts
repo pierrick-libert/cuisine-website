@@ -20,6 +20,21 @@ const DEFAULT_PIPELINE_STATUS: PipelineStatus = {
 };
 
 /**
+ * Defaults `selectedForNextPublish`/`publishStatus` on a `RecipeMeta` returned from an `Update`
+ * that only wrote one of the two fields — a recipe written before 004-publish-pipeline-and has
+ * neither, so the one this particular call didn't set would otherwise read back `undefined`
+ * (Important 9 from code review; see `recipe-repository.ts`'s `withPublishDefaults` for the same
+ * fix on the read paths).
+ */
+function withPublishDefaults(meta: RecipeMeta): RecipeMeta {
+  return {
+    ...meta,
+    selectedForNextPublish: meta.selectedForNextPublish ?? false,
+    publishStatus: meta.publishStatus ?? 'not_published',
+  };
+}
+
+/**
  * Sets a recipe's one-shot publish-selection toggle (FR-001).
  *
  * @returns The updated `RecipeMeta`, or `null` if no recipe with that id exists (404 case).
@@ -36,7 +51,7 @@ export async function setSelectedForNextPublish(recipeId: string, selected: bool
         ReturnValues: 'ALL_NEW',
       }),
     );
-    return (result.Attributes as RecipeMeta) ?? null;
+    return result.Attributes ? withPublishDefaults(result.Attributes as RecipeMeta) : null;
   } catch (err) {
     if (err instanceof ConditionalCheckFailedException) return null;
     throw err;
@@ -60,7 +75,7 @@ export async function setPublishStatus(recipeId: string, status: PublishStatus):
         ReturnValues: 'ALL_NEW',
       }),
     );
-    return (result.Attributes as RecipeMeta) ?? null;
+    return result.Attributes ? withPublishDefaults(result.Attributes as RecipeMeta) : null;
   } catch (err) {
     if (err instanceof ConditionalCheckFailedException) return null;
     throw err;
