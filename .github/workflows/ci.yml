@@ -97,12 +97,18 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
         working-directory: frontend
-      # Defense-in-depth alongside infra/pipeline.ts's nodejs.install for the Eleventy-using
-      # Lambdas — having public-site/node_modules present locally during the esbuild bundling
-      # step can't hurt even if nodejs.install alone would otherwise suffice.
+      # public-site/node_modules must exist locally for esbuild to bundle
+      # backend/src/pipeline/render-recipe.ts/rebuild-index.ts, which import
+      # ../../../public-site/src/render.js (a real @11ty/eleventy call).
       - name: Install public-site dependencies
         run: npm ci
         working-directory: public-site
+      # infra/pipeline.ts copies THIS node_modules (not public-site's) into the Eleventy-using
+      # Lambda bundles via copyFiles — it's gitignored like any node_modules, so it must be
+      # installed fresh here every deploy, same as the three above.
+      - name: Install Eleventy Lambda dependencies
+        run: npm ci
+        working-directory: infra/.eleventy-lambda-deps
 
       - name: Deploy
         run: npx sst deploy --stage production
