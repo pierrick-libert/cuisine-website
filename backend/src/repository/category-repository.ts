@@ -41,8 +41,11 @@ export async function findOrCreateCategory(displayName: string): Promise<Categor
       },
     }),
   );
-  const found = existing.Items?.[0] as Category | undefined;
-  if (found) return found;
+  const found = existing.Items?.[0] as (Category & { PK?: string; SK?: string }) | undefined;
+  if (found) {
+    const { PK: _pk, SK: _sk, ...rest } = found;
+    return rest;
+  }
 
   const category: Category = { categoryId: generateId(), normalizedName, displayName };
   await docClient.send(
@@ -52,4 +55,26 @@ export async function findOrCreateCategory(displayName: string): Promise<Categor
     }),
   );
   return category;
+}
+
+/**
+ * Lists every category in the system.
+ *
+ * @remarks
+ * A full table `Scan`, per constitution Principle IV — the category count at this project's
+ * scale is small. Used by `rebuild-index.ts` to reconcile which category shell pages should
+ * exist per locale.
+ */
+export async function listCategories(): Promise<Category[]> {
+  const result = await docClient.send(
+    new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: 'begins_with(PK, :prefix) AND SK = :meta',
+      ExpressionAttributeValues: { ':prefix': 'CATEGORY#', ':meta': 'META' },
+    }),
+  );
+  return (result.Items ?? []).map((item) => {
+    const { PK: _pk, SK: _sk, ...rest } = item as Category & { PK: string; SK: string };
+    return rest;
+  });
 }
