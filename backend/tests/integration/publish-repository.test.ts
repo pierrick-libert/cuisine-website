@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createRecipe } from '../../src/repository/recipe-repository.js';
 import {
+  deletePipelineStatus,
   deletePublishedSnapshot,
   getPipelineStatus,
   listPublishedSnapshots,
@@ -69,6 +70,11 @@ describe('publish-repository (004)', () => {
 
   describe('pipeline status', () => {
     it('defaults to not running when no run has ever started', async () => {
+      // Other test files in this shared local-DynamoDB table also write PIPELINE#STATUS
+      // (a genuine singleton, data-model.md) — force its true "never written" state first so
+      // this assertion is deterministic regardless of suite-wide test ordering.
+      await deletePipelineStatus();
+
       const status = await getPipelineStatus();
       expect(status.running).toBe(false);
       expect(status.executionArn).toBeNull();

@@ -119,3 +119,9 @@ export async function setPipelineStatus(status: PipelineStatus): Promise<void> {
     new PutCommand({ TableName: TABLE_NAME, Item: { ...pipelineStatusKey, ...status } }),
   );
 }
+
+/** Removes the single `PIPELINE#STATUS` item entirely, restoring {@link getPipelineStatus}'s
+ * "never run" default. Test-only — production code never deletes this item, only replaces it. */
+export async function deletePipelineStatus(): Promise<void> {
+  await docClient.send(new DeleteCommand({ TableName: TABLE_NAME, Key: pipelineStatusKey }));
+}
