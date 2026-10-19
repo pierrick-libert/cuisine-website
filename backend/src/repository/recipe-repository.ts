@@ -136,6 +136,9 @@ export async function createRecipe(input: RecipeInput): Promise<RecipeWithLocale
     stepsOrder,
     createdAt: now,
     updatedAt: now,
+    // 004-publish-pipeline-and: every recipe starts untoggled and unpublished.
+    selectedForNextPublish: false,
+    publishStatus: 'not_published',
   };
 
   const transactItems: TransactWriteCommandInput['TransactItems'] = [
@@ -221,6 +224,10 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
     stepsOrder,
     createdAt: existing.createdAt,
     updatedAt: new Date().toISOString(),
+    // 004-publish-pipeline-and: a draft edit never touches publish state (US3 — the public site
+    // must not drift ahead of the last actual publish run just because the draft changed).
+    selectedForNextPublish: existing.selectedForNextPublish,
+    publishStatus: existing.publishStatus,
   };
 
   const transactItems: TransactWriteCommandInput['TransactItems'] = [
