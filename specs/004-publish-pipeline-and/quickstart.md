@@ -66,14 +66,18 @@ auto-validated via the delegated Route 53 zone), the backoffice's new
 
 - `backend/tests/unit/publish-selection.test.ts`: selecting the toggled-on recipe set and building
   a run plan, pure function, no AWS calls.
-- `backend/tests/unit/rebuild-index.test.ts`: `browse-index.json`/category-shell assembly from
-  fixture snapshot-table data — confirms it never reads live draft fields.
-- `public-site/tests/unit/templates.test.ts`: fixture recipe/category data → expected rendered
-  HTML (per the constitution's testing stance).
-- `backend/tests/integration/start-publish.test.ts`: the `409` concurrent-run guard and the
-  no-op/`nothing-to-publish` path, with the Step Functions client mocked.
-- `backend/tests/integration/render-recipe.test.ts`: the per-recipe render/S3-write logic, with
-  the S3 client mocked.
-- No automated test runs a real Step Functions execution end-to-end or hits real CloudFront —
-  validated manually per scenarios 1-7 above, mirroring 002/003's stance on infrastructure that
-  cannot reasonably be exercised in CI.
+- `backend/tests/integration/rebuild-index.test.ts`: `browse-index.json`/category-shell/home-page
+  assembly from real snapshot-table data (local DynamoDB) — confirms it never reads live draft
+  fields, and reconciles stale locales/categories correctly.
+- `public-site/tests/unit/render.test.ts`: real `@11ty/eleventy` invocations (not mocked) against
+  `templates/` — fixture recipe/category/home data → expected rendered HTML (per the
+  constitution's testing stance).
+- `backend/tests/integration/start-publish.test.ts`: the `409` concurrent-run guard (including a
+  genuine concurrent-call race test), the no-op/`nothing-to-publish` path, and the atomic lock
+  acquisition, with the Step Functions client mocked.
+- `backend/tests/integration/render-recipe.test.ts` / `remove-recipe.test.ts`: the per-recipe
+  render/remove logic (real Eleventy rendering, S3 client mocked), including partial-failure
+  rollback and the Lambda event-shape contract (`{ recipeId }`, matching the ASL's `ItemSelector`).
+- No automated test runs a real Step Functions execution end-to-end, deploys to real AWS, or hits
+  real CloudFront — validated manually per scenarios 1-7 above, mirroring 002/003's stance on
+  infrastructure that cannot reasonably be exercised in CI.

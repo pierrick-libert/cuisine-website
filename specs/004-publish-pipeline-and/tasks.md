@@ -33,12 +33,12 @@ Web application layout, per plan.md's Project Structure: `backend/src/`, `fronte
 
 **Purpose**: Scaffold the new `public-site/` project this feature introduces.
 
-- [ ] T001 Create `public-site/` project scaffold (`package.json`, `tsconfig.json`,
+- [x] T001 Create `public-site/` project scaffold (`package.json`, `tsconfig.json`,
   `.eleventy.js`) per plan.md's Project Structure, mirroring `backend/`'s TypeScript/Node 24.x
   configuration
-- [ ] T002 [P] Add `@11ty/eleventy` (latest 3.x) and TypeScript devDependencies to
+- [x] T002 [P] Add `@11ty/eleventy` (latest 3.x) and TypeScript devDependencies to
   `public-site/package.json` (plan.md Primary Dependencies)
-- [ ] T003 [P] Configure ESLint for `public-site/` in `public-site/eslint.config.js`, matching the
+- [x] T003 [P] Configure ESLint for `public-site/` in `public-site/eslint.config.js`, matching the
   style of `backend/eslint.config.js` and `frontend/eslint.config.js`
 
 ---
@@ -50,7 +50,7 @@ steps — everything every user story needs before it can be built or independen
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 Extend `backend/src/domain/types.ts`: add `selectedForNextPublish: boolean` and
+- [x] T004 Extend `backend/src/domain/types.ts`: add `selectedForNextPublish: boolean` and
   `publishStatus: 'not_published' | 'live' | 'publishing' | 'unpublishing'` to `RecipeMeta`
   (data-model.md's `RECIPE#<id>/META` — extended); add new `PublishedSnapshot`
   (`recipeId`, `locale`, `title`, `slug`, `categoryId: string | null`, `renderedAt`) and
@@ -59,75 +59,75 @@ steps — everything every user story needs before it can be built or independen
   `lastResult: 'succeeded' | 'failed' | null`) interfaces; update the stale `RecipeStatus` doc
   comment ("Only `'draft'` exists... publishing will add `'published'`") to reflect that
   publish state lives in the new `publishStatus` field, not a `RecipeStatus` enum value
-- [ ] T005 [P] Implement `backend/src/repository/publish-repository.ts`: read/write
+- [x] T005 [P] Implement `backend/src/repository/publish-repository.ts`: read/write
   `selectedForNextPublish` and `publishStatus` on `RECIPE#<id>/META`; create/delete
   `RECIPE#<id>/PUBLISHED#<locale>` snapshot items; read/write the single `PIPELINE#STATUS` item
   (data-model.md — exactly one such item ever exists)
-- [ ] T006 [P] Unit test `backend/tests/unit/publish-repository.test.ts`: toggle set/reset,
+- [x] T006 [P] Unit test `backend/tests/unit/publish-repository.test.ts`: toggle set/reset,
   `publishStatus` transitions, snapshot create/delete, and `PIPELINE#STATUS` read/write, against a
   local DynamoDB (mirrors 001's repository test pattern)
-- [ ] T007 Add a new public, static-site-ready S3 bucket (`clp-` prefixed, per
+- [x] T007 Add a new public, static-site-ready S3 bucket (`clp-` prefixed, per
   `infra/iam/README.md`'s naming constraint) to `infra/storage.ts` for the public site's rendered
   output
-- [ ] T008 Create `infra/public-site.ts`: a new `sst.aws.StaticSite` provisioning the public
+- [x] T008 Create `infra/public-site.ts`: a new `sst.aws.StaticSite` provisioning the public
   bucket + CloudFront distribution + `domain: 'cuisine.libertpierrick.com'` via SST's Route 53 DNS
   integration (research.md "Custom domains via SST") — `build` step left minimal/placeholder, since
   real content is written by the pipeline at publish time, not at `sst deploy` time
-- [ ] T009 Add `domain: 'admin.cuisine.libertpierrick.com'` to the existing backoffice
+- [x] T009 Add `domain: 'admin.cuisine.libertpierrick.com'` to the existing backoffice
   `sst.aws.StaticSite` in `infra/web.ts` (research.md "Backoffice migration to its own subdomain")
-- [ ] T010 Create `infra/pipeline.ts`: the Step Functions state machine shape — a selection Lambda,
+- [x] T010 Create `infra/pipeline.ts`: the Step Functions state machine shape — a selection Lambda,
   a Map state branching to a render task (Publish) or a remove task (Unpublish) per toggled
   recipe, a shared rebuild-index task, a shared invalidate-CDN task, and a top-level `Catch`
   handler that marks `PIPELINE#STATUS.lastResult = 'failed'` and leaves unaffected recipes
   untouched (FR-010, research.md "Pipeline orchestration shape"); wire placeholder stubs for the
   render/remove task Lambdas, to be implemented in US1/US2
-- [ ] T011 Implement `backend/src/domain/publish-selection.ts`: pure function that reads the
+- [x] T011 Implement `backend/src/domain/publish-selection.ts`: pure function that reads the
   toggled-on (`selectedForNextPublish === true`) recipe set and builds a run plan for a given
   action (`'publish' | 'unpublish'`) — FR-002 through FR-004
-- [ ] T012 [P] Unit test `backend/tests/unit/publish-selection.test.ts`: untoggled recipes are
+- [x] T012 [P] Unit test `backend/tests/unit/publish-selection.test.ts`: untoggled recipes are
   excluded from either plan; a recipe toggled on appears in exactly one plan per the action passed
-- [ ] T013 Implement `backend/src/handlers/toggle-recipe-publish.ts`:
+- [x] T013 Implement `backend/src/handlers/toggle-recipe-publish.ts`:
   `PATCH /recipes/{id}/publish-toggle` (contracts/publish-api.md) — `404` for an unknown recipe id
-- [ ] T014 Implement `backend/src/handlers/start-publish.ts` and
+- [x] T014 Implement `backend/src/handlers/start-publish.ts` and
   `backend/src/handlers/start-unpublish.ts`: `POST /publish` / `POST /unpublish` — reject with
   `409` if `PIPELINE#STATUS.running` is already `true` (FR-009), otherwise call Step Functions
   `StartExecution` with `publish-selection.ts`'s plan, record `running: true` +
   `executionArn` + `action` + `startedAt`, and return `202` with `{ executionArn, status:
   "started" }`; return `200` with `{ status: "nothing-to-publish" | "nothing-to-unpublish" }` and
   skip `StartExecution` when the plan is empty (contracts/publish-api.md)
-- [ ] T015 Implement `backend/src/handlers/get-publish-status.ts`: `GET /publish-status` — reads
+- [x] T015 Implement `backend/src/handlers/get-publish-status.ts`: `GET /publish-status` — reads
   `PIPELINE#STATUS`, and while `running` is `true`, calls Step Functions `DescribeExecution` on the
   stored `executionArn` to confirm live status (contracts/publish-api.md)
-- [ ] T016 [P] Integration test `backend/tests/integration/start-publish.test.ts`: the `409`
+- [x] T016 [P] Integration test `backend/tests/integration/start-publish.test.ts`: the `409`
   concurrent-run guard (FR-009) and the `nothing-to-publish` no-op path, with the Step Functions
   client mocked (quickstart.md scenario 6)
-- [ ] T017 Wire the four new routes — `PATCH /recipes/{id}/publish-toggle`, `POST /publish`,
+- [x] T017 Wire the four new routes — `PATCH /recipes/{id}/publish-toggle`, `POST /publish`,
   `POST /unpublish`, `GET /publish-status` — into `infra/api.ts`, each behind the existing Cognito
   JWT authorizer (Principle III — no new unauthenticated surface)
-- [ ] T018 Extend `backend/src/handlers/list-recipes.ts` and `backend/src/handlers/get-recipe.ts`
+- [x] T018 Extend `backend/src/handlers/list-recipes.ts` and `backend/src/handlers/get-recipe.ts`
   response shapes to include `selectedForNextPublish` and `publishStatus` per recipe (FR-008,
   contracts/publish-api.md — additive fields on the existing 001 contracts)
-- [ ] T019 [P] Create `frontend/src/services/publishApi.ts`: typed calls to the four new routes
-- [ ] T020 Create `frontend/src/components/PublishToggle.tsx`: a self-contained per-recipe toggle
+- [x] T019 [P] Create `frontend/src/services/publishApi.ts`: typed calls to the four new routes
+- [x] T020 Create `frontend/src/components/PublishToggle.tsx`: a self-contained per-recipe toggle
   control (owns its own pending/error state, mirroring 003's `TranslationDraftButton.tsx` pattern)
-- [ ] T021 Modify `frontend/src/pages/RecipeListPage.tsx`: add the toggle column, "Publish" and
+- [x] T021 Modify `frontend/src/pages/RecipeListPage.tsx`: add the toggle column, "Publish" and
   "Unpublish" buttons (each acting on currently-toggled recipes only), a per-recipe
   `publishStatus` display independent of the toggle (FR-008), and polling of `GET /publish-status`
   while a run is in progress, surfacing a `409` as a clear "a run is already in progress" message
   (FR-009)
-- [ ] T022 [P] Unit test `frontend/tests/unit/PublishToggle.test.tsx` (React Testing Library, per
+- [x] T022 [P] Unit test `frontend/tests/unit/PublishToggle.test.tsx` (React Testing Library, per
   003's established component-test pattern)
-- [ ] T023 Implement `backend/src/pipeline/rebuild-index.ts`: regenerates, in full on every run,
+- [x] T023 Implement `backend/src/pipeline/rebuild-index.ts`: regenerates, in full on every run,
   each locale's `browse-index.json` and every category shell page's presence/absence, built
   exclusively from `RECIPE#<id>/PUBLISHED#<locale>` snapshot items filtered to
   `publishStatus === 'live'` — **never** from live draft recipe content (FR-013, SC-008,
   research.md "Full index/category rebuild, driven by a snapshot table")
-- [ ] T024 [P] Unit test `backend/tests/unit/rebuild-index.test.ts`: given a snapshot-table fixture
+- [x] T024 [P] Unit test `backend/tests/unit/rebuild-index.test.ts`: given a snapshot-table fixture
   and a live draft edit to a recipe *not* re-rendered this run, confirms the rebuilt index/category
   shells reflect only the snapshot data, never the live draft edit
-- [ ] T025 Implement `backend/src/pipeline/invalidate-cdn.ts`: CloudFront invalidation for the
+- [x] T025 Implement `backend/src/pipeline/invalidate-cdn.ts`: CloudFront invalidation for the
   public distribution, run as the pipeline's final shared task
-- [ ] T026 Create `public-site/.eleventy.js` config and `public-site/templates/category-shell.njk`:
+- [x] T026 Create `public-site/.eleventy.js` config and `public-site/templates/category-shell.njk`:
   static chrome shell per locale/category that fetches `browse-index.json` client-side rather than
   embedding a recipe list (contracts/public-site-index.md)
 
@@ -147,24 +147,24 @@ state is unchanged (quickstart.md scenario 1).
 
 ### Tests for User Story 1
 
-- [ ] T027 [P] [US1] Integration test `backend/tests/integration/render-recipe.test.ts`: the
+- [x] T027 [P] [US1] Integration test `backend/tests/integration/render-recipe.test.ts`: the
   per-recipe render → S3-write → snapshot-write → `publishStatus` transition logic, with the S3
   client mocked
 
 ### Implementation for User Story 1
 
-- [ ] T028 [US1] Create `public-site/templates/recipe-detail.njk`: per-locale recipe detail page
+- [x] T028 [US1] Create `public-site/templates/recipe-detail.njk`: per-locale recipe detail page
   template (contracts/public-site-index.md's `/<locale>/recipes/<slug>.html` path)
-- [ ] T029 [US1] Implement `public-site/src/render.ts`: programmatic Eleventy invocation that
+- [x] T029 [US1] Implement `public-site/src/render.ts`: programmatic Eleventy invocation that
   renders one recipe's data against `recipe-detail.njk`, writing to the Lambda's `/tmp`
   (research.md "Rendering recipes with Eleventy inside a Lambda task")
-- [ ] T030 [US1] Implement `backend/src/pipeline/render-recipe.ts` (the Map-state render task):
+- [x] T030 [US1] Implement `backend/src/pipeline/render-recipe.ts` (the Map-state render task):
   invokes `public-site/src/render.ts`, uploads the result to the public bucket via `PutObject` —
   one file per locale the recipe has content for, never for a locale it lacks (FR-015) — writes
   that locale's `RECIPE#<id>/PUBLISHED#<locale>` snapshot (data-model.md), sets `publishStatus` to
   `'live'` on success, leaves it at its prior value unchanged on failure (FR-010), and resets
   `selectedForNextPublish` to `false` regardless of outcome (FR-005)
-- [ ] T031 [US1] Wire `render-recipe.ts` into `infra/pipeline.ts`'s Publish-branch Map state,
+- [x] T031 [US1] Wire `render-recipe.ts` into `infra/pipeline.ts`'s Publish-branch Map state,
   replacing T010's placeholder
 - [ ] T032 [US1] Run quickstart.md scenario 1 (Publish a recipe) end-to-end against a deployed
   stack and confirm every expected result
@@ -184,18 +184,18 @@ recipe stays live (quickstart.md scenario 2).
 
 ### Tests for User Story 2
 
-- [ ] T033 [P] [US2] Integration test `backend/tests/integration/remove-recipe.test.ts`: the
+- [x] T033 [P] [US2] Integration test `backend/tests/integration/remove-recipe.test.ts`: the
   per-recipe S3-delete → snapshot-delete → `publishStatus` transition logic, with the S3 client
   mocked
 
 ### Implementation for User Story 2
 
-- [ ] T034 [US2] Implement `backend/src/pipeline/remove-recipe.ts` (the Map-state remove task):
+- [x] T034 [US2] Implement `backend/src/pipeline/remove-recipe.ts` (the Map-state remove task):
   deletes the recipe's rendered page(s) from the public bucket, deletes its
   `RECIPE#<id>/PUBLISHED#<locale>` snapshot(s), sets `publishStatus` to `'not_published'` on
   success, leaves it at its prior value unchanged on failure (FR-010), and resets
   `selectedForNextPublish` to `false` regardless of outcome (FR-005)
-- [ ] T035 [US2] Wire `remove-recipe.ts` into `infra/pipeline.ts`'s Unpublish-branch Map state,
+- [x] T035 [US2] Wire `remove-recipe.ts` into `infra/pipeline.ts`'s Unpublish-branch Map state,
   replacing T010's placeholder
 - [ ] T036 [US2] Run quickstart.md scenario 2 (Unpublish a recipe) end-to-end against a deployed
   stack and confirm every expected result
@@ -216,7 +216,7 @@ updates (quickstart.md scenario 3).
 
 ### Tests for User Story 3
 
-- [ ] T037 [P] [US3] Integration test `backend/tests/integration/stable-snapshot.test.ts`: edits a
+- [x] T037 [P] [US3] Integration test `backend/tests/integration/stable-snapshot.test.ts`: edits a
   published recipe's draft content via the existing `PUT /recipes/{id}` (001) without
   toggling/republishing it, and asserts its `RECIPE#<id>/PUBLISHED#<locale>` snapshot is untouched
 
@@ -240,15 +240,15 @@ recipe missing from a locale doesn't break that locale's listings (quickstart.md
 
 ### Tests for User Story 4
 
-- [ ] T039 [P] [US4] Unit test `public-site/tests/unit/templates.test.ts`: fixture recipe/category
+- [x] T039 [P] [US4] Unit test `public-site/tests/unit/templates.test.ts`: fixture recipe/category
   data → expected `category-shell.njk` HTML output (constitution's Eleventy template-rendering
   testing stance)
 
 ### Implementation for User Story 4
 
-- [ ] T040 [US4] Implement `public-site/assets/browse.js`: Alpine.js-based client-side
+- [x] T040 [US4] Implement `public-site/assets/browse.js`: Alpine.js-based client-side
   search/filter/pagination over `browse-index.json` (contracts/public-site-index.md, Principle II)
-- [ ] T041 [US4] Wire `browse.js` into `public-site/templates/category-shell.njk`, using
+- [x] T041 [US4] Wire `browse.js` into `public-site/templates/category-shell.njk`, using
   `mockups/Browse.dc.html` as the visual/layout reference
 - [ ] T042 [US4] Run quickstart.md scenario 4 (browse and search) end-to-end against a deployed
   stack, across at least two locales and categories
@@ -266,7 +266,7 @@ backoffice action (quickstart.md scenario 5).
 
 ### Implementation for User Story 5
 
-- [ ] T043 [US5] Update the Cognito app client's callback/logout URLs in `infra/auth.ts` to use
+- [x] T043 [US5] Update the Cognito app client's callback/logout URLs in `infra/auth.ts` to use
   `https://admin.cuisine.libertpierrick.com` (built on T009's domain addition)
 - [ ] T044 [US5] Run quickstart.md scenario 5 (backoffice on its own subdomain) end-to-end against
   a deployed stack
@@ -283,7 +283,7 @@ backoffice action (quickstart.md scenario 5).
   recipe's render failing while others succeed
 - [ ] T047 Update `specs/004-publish-pipeline-and/quickstart.md` with the actual deployed URLs and
   any corrections found during manual validation
-- [ ] T048 [P] Update `backend/README.md` and the root `README.md` with the publish/unpublish
+- [x] T048 [P] Update `backend/README.md` and the root `README.md` with the publish/unpublish
   workflow and the two live domains (`cuisine.libertpierrick.com`,
   `admin.cuisine.libertpierrick.com`)
 
