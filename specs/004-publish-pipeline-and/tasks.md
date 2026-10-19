@@ -166,7 +166,7 @@ state is unchanged (quickstart.md scenario 1).
   `selectedForNextPublish` to `false` regardless of outcome (FR-005)
 - [x] T031 [US1] Wire `render-recipe.ts` into `infra/pipeline.ts`'s Publish-branch Map state,
   replacing T010's placeholder
-- [ ] T032 [US1] Run quickstart.md scenario 1 (Publish a recipe) end-to-end against a deployed
+- [x] T032 [US1] Run quickstart.md scenario 1 (Publish a recipe) end-to-end against a deployed
   stack and confirm every expected result
 
 **Checkpoint**: User Story 1 is independently functional — this is the MVP.
@@ -197,7 +197,7 @@ recipe stays live (quickstart.md scenario 2).
   `selectedForNextPublish` to `false` regardless of outcome (FR-005)
 - [x] T035 [US2] Wire `remove-recipe.ts` into `infra/pipeline.ts`'s Unpublish-branch Map state,
   replacing T010's placeholder
-- [ ] T036 [US2] Run quickstart.md scenario 2 (Unpublish a recipe) end-to-end against a deployed
+- [x] T036 [US2] Run quickstart.md scenario 2 (Unpublish a recipe) end-to-end against a deployed
   stack and confirm every expected result
 
 **Checkpoint**: Publish and Unpublish are both independently functional.
@@ -222,7 +222,7 @@ updates (quickstart.md scenario 3).
 
 ### Implementation for User Story 3
 
-- [ ] T038 [US3] Run quickstart.md scenario 3 (editing without republishing) end-to-end against a
+- [x] T038 [US3] Run quickstart.md scenario 3 (editing without republishing) end-to-end against a
   deployed stack and confirm every expected result
 
 **Checkpoint**: The snapshot-stability guarantee (FR-007, SC-005) is verified.
@@ -277,7 +277,7 @@ backoffice action (quickstart.md scenario 5).
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T045 [P] Run quickstart.md scenario 6 (concurrent-run guard) end-to-end against a deployed
+- [x] T045 [P] Run quickstart.md scenario 6 (concurrent-run guard) end-to-end against a deployed
   stack
 - [ ] T046 [P] Run quickstart.md scenario 7 (partial-failure isolation) end-to-end, simulating one
   recipe's render failing while others succeed

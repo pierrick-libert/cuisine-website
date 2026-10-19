@@ -14,7 +14,37 @@ S3+CloudFront site at `cuisine.libertpierrick.com` (with its `us-east-1` ACM cer
 auto-validated via the delegated Route 53 zone), the backoffice's new
 `admin.cuisine.libertpierrick.com` domain/certificate, and the four new API Gateway routes.
 
+**Deployed and live** (2026-10-19) at exactly these URLs:
+
+- Public site: `https://cuisine.libertpierrick.com`
+- Backoffice: `https://admin.cuisine.libertpierrick.com`
+- API: `https://i2m3nu49z4.execute-api.eu-central-1.amazonaws.com`
+
+Two issues only surfaced on this real deploy (neither reproducible by local unit/integration
+tests, since those never run through esbuild's actual Lambda bundling) — both fixed and
+redeployed before validation below:
+- SST's `nodejs.install` mechanism runs its own `npm ci` inside the deploy process; that failed
+  in the deploying environment even though the identical command succeeded run directly. Switched
+  to supplying `@11ty/eleventy`'s `node_modules` via `copyFiles` from a committed,
+  pre-installed `infra/.eleventy-lambda-deps/` instead.
+- esbuild auto-injects its own `__dirname` shim into any Node-ESM bundle referencing that
+  identifier anywhere, colliding with `render.ts`'s/`rebuild-index.ts`'s own
+  `import.meta.url`-based `__dirname` polyfill (`SyntaxError: Identifier '__dirname' has already
+  been declared`). Renamed to `currentDir` in both files.
+
+---
+
 ## Validation scenarios (map to spec.md Acceptance Scenarios)
+
+**Scenarios 1, 2, 3, and 6 below were validated against this real deployment** by invoking the
+deployed Lambdas directly (IAM/AWS CLI, bypassing Cognito — no login credentials were available
+in the validating environment) and checking the actual public URLs. Scenario 4's server-side
+artifacts (home page, `browse-index.json`, `assets/browse.js`, category reconciliation) were
+confirmed present and correct the same way; the client-side Alpine.js interactivity itself needs
+a real browser to exercise, not yet done. Scenario 5's reachability was confirmed (both domains
+resolve and serve); the actual Cognito sign-in flow needs a real login, not yet done. Scenario 7
+(partial-failure isolation) was not re-triggered live — deliberately breaking something in a real
+production run was judged too risky; it remains covered by the automated test suite only.
 
 1. **Publish a recipe (User Story 1)**
    - In the backoffice (now at `admin.cuisine.libertpierrick.com`), open a complete recipe and
