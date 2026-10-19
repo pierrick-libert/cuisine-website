@@ -74,3 +74,28 @@ export async function renderCategoryShellPage(data: CategoryShellRenderData): Pr
   if (!page) throw new Error('category-shell.njk did not render.');
   return page.content;
 }
+
+export interface HomePageRenderData {
+  locale: string;
+  categories: Array<{ name: string; slug: string }>;
+}
+
+/**
+ * Renders one locale's home page via `templates/home.njk` (Important 15 from code review — the
+ * public site previously had no reachable entry point at all; a visitor needed to already know a
+ * direct recipe or category URL). Links every given category and wires a locale-wide search
+ * (`categoryBrowse(locale, null)`, not scoped to one category) over `browse-index.json`.
+ */
+export async function renderHomePage(data: HomePageRenderData): Promise<string> {
+  const eleventy = new Eleventy(TEMPLATES_DIR, undefined, {
+    quietMode: true,
+    config(eleventyConfig: { addGlobalData: (name: string, data: unknown) => void }) {
+      eleventyConfig.addGlobalData('home', data);
+    },
+  });
+
+  const results = (await eleventy.toJSON()) as Array<{ inputPath: string; content: string }>;
+  const page = results.find((r) => r.inputPath.endsWith('home.njk'));
+  if (!page) throw new Error('home.njk did not render.');
+  return page.content;
+}

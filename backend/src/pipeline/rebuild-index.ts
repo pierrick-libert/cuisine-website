@@ -6,7 +6,7 @@ import { listPublishedSnapshots } from '../repository/publish-repository.js';
 import { getCategoryById, listCategories } from '../repository/category-repository.js';
 import { slugify } from '../lib/slug.js';
 import { SUPPORTED_LOCALES } from '../lib/locales.js';
-import { renderCategoryShellPage } from '../../../public-site/src/render.js';
+import { renderCategoryShellPage, renderHomePage } from '../../../public-site/src/render.js';
 import type { PublishedSnapshot } from '../domain/types.js';
 
 const s3 = new S3Client({});
@@ -124,9 +124,15 @@ export async function rebuildIndex(): Promise<void> {
   }
 
   // Reconcile category shells for the same locale set as the index above — create the shell if
-  // the category is live there, or remove it if not (`contracts/public-site-index.md`).
+  // the category is live there, or remove it if not (`contracts/public-site-index.md`) — and
+  // collect each locale's live categories for its home page (Important 15: a public-site entry
+  // point, since nothing previously linked to a category shell or recipe page without already
+  // knowing its direct URL).
+  const allCategories = await listCategories();
   for (const locale of localesToRebuild) {
-    for (const category of await listCategories()) {
+    const liveCategoriesThisLocale: Array<{ name: string; slug: string }> = [];
+
+    for (const category of allCategories) {
       const slug = slugify(category.displayName);
       const key = `${locale}/categories/${slug}.html`;
 
@@ -135,9 +141,15 @@ export async function rebuildIndex(): Promise<void> {
         await s3.send(
           new PutObjectCommand({ Bucket: PUBLIC_BUCKET_NAME, Key: key, Body: html, ContentType: 'text/html' }),
         );
+        liveCategoriesThisLocale.push({ name: category.displayName, slug });
       } else {
         await s3.send(new DeleteObjectCommand({ Bucket: PUBLIC_BUCKET_NAME, Key: key }));
       }
     }
+
+    const homeHtml = await renderHomePage({ locale, categories: liveCategoriesThisLocale });
+    await s3.send(
+      new PutObjectCommand({ Bucket: PUBLIC_BUCKET_NAME, Key: `${locale}/index.html`, Body: homeHtml, ContentType: 'text/html' }),
+    );
   }
 }

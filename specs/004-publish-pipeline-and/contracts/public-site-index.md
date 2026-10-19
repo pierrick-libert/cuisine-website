@@ -22,6 +22,15 @@ constitution's client-side-interactivity stance — it is not re-rendered with a
 list on every run, only reconciled (created/removed) when a category's live membership changes to/
 from zero.
 
+## Locale home page
+
+Path: `/<locale>/index.html`. Written for every `SUPPORTED_LOCALES` entry on every run (Important
+15, found in code review: the site previously had no reachable entry point at all — a visitor
+needed to already know a direct recipe or category URL). Links every currently-live category in
+that locale and embeds a locale-wide search (`categoryBrowse(locale, null)` — no category filter)
+over that locale's `browse-index.json`, satisfying FR-012's "search/filter across all currently-
+published recipes," not just within one category.
+
 ## Browse/search index
 
 Path: `/<locale>/browse-index.json`. One file per locale. Rebuilt in full on every pipeline run,

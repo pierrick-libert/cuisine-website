@@ -1,7 +1,10 @@
-// Alpine.js component powering client-side browse/search/filter on a category shell page
-// (004-publish-pipeline-and User Story 4, contracts/public-site-index.md). Loaded as a plain
-// script (not a module) so `categoryBrowse` is available as a global before Alpine (deferred)
-// evaluates `x-data="categoryBrowse(...)"` — see category-shell.njk.
+// Alpine.js component powering client-side browse/search/filter (004-publish-pipeline-and User
+// Story 4, contracts/public-site-index.md). Loaded as a plain script (not a module) so
+// `categoryBrowse` is available as a global before Alpine (deferred) evaluates
+// `x-data="categoryBrowse(...)"` — see category-shell.njk and home.njk.
+//
+// `categorySlug` is optional — home.njk uses `categoryBrowse(locale, null)` for a locale-wide
+// search across every published recipe (FR-012), not just one category.
 function categoryBrowse(locale, categorySlug) {
   return {
     locale,
@@ -12,7 +15,8 @@ function categoryBrowse(locale, categorySlug) {
       const query = this.query.trim().toLowerCase();
       return this.recipes.filter(
         (recipe) =>
-          recipe.categorySlug === this.categorySlug && (!query || recipe.title.toLowerCase().includes(query)),
+          (!this.categorySlug || recipe.categorySlug === this.categorySlug) &&
+          (!query || recipe.title.toLowerCase().includes(query)),
       );
     },
     async load() {

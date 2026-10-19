@@ -124,6 +124,26 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
     expect(body.recipes).toEqual([]);
   });
 
+  it('uploads a locale home page linking every currently-live category (Important 15)', async () => {
+    const category = await findOrCreateCategory('Home Page Category');
+    await putPublishedSnapshot({
+      recipeId: 'r-home-page',
+      locale: 'en',
+      title: 'Home Page Recipe',
+      slug: 'home-page-recipe',
+      categoryId: category.categoryId,
+      renderedAt: '2026-10-19T00:00:00Z',
+    });
+
+    await rebuildIndex();
+
+    const calls = s3Calls();
+    const homeCall = calls.find((c) => c.Key === 'en/index.html');
+    expect(homeCall).toBeDefined();
+    expect(homeCall!.Body).toContain('Home Page Category');
+    expect(homeCall!.Body).toContain('categories/home-page-category.html');
+  });
+
   it('removes a category shell once that category has no live recipe left in a locale that is otherwise still live', async () => {
     const liveCategory = await findOrCreateCategory('Keeps This Locale Live');
     const emptyCategory = await findOrCreateCategory('Now Empty Category');

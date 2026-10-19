@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { renderCategoryShellPage, renderRecipePage } from '../../src/render.js';
+import { renderCategoryShellPage, renderHomePage, renderRecipePage } from '../../src/render.js';
 
 describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy inside a Lambda task")', () => {
   it('renders a full HTML page from recipe data', async () => {
@@ -74,5 +74,23 @@ describe('renderCategoryShellPage (004, User Story 4)', () => {
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('Desserts');
     expect(html).toContain("categoryBrowse('en', 'desserts')");
+  });
+});
+
+describe('renderHomePage (004, Important 15 - a public-site entry point)', () => {
+  it('renders a locale home page linking every given category and wiring a locale-wide search', async () => {
+    const html = await renderHomePage({
+      locale: 'en',
+      categories: [
+        { name: 'Desserts', slug: 'desserts' },
+        { name: 'Mains', slug: 'mains' },
+      ],
+    });
+
+    expect(html).toContain('<html lang="en">');
+    expect(html).toContain('/en/categories/desserts.html');
+    expect(html).toContain('/en/categories/mains.html');
+    // null, not a specific category slug — a locale-wide search, not scoped to one category.
+    expect(html).toContain("categoryBrowse('en', null)");
   });
 });
