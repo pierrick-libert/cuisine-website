@@ -19,6 +19,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
   if (!recipeId) return json(400, { message: 'Missing recipe id.' });
 
   const input = parseJsonBody<ToggleInput>(event.body);
+  if (typeof input.selected !== 'boolean') return json(400, { message: '"selected" must be a boolean.' });
+
   const meta = await setSelectedForNextPublish(recipeId, input.selected);
   if (!meta) return json(404, { message: 'Recipe not found.' });
 

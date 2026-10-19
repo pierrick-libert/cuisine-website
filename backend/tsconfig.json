@@ -6,7 +6,11 @@
     "lib": ["ES2023"],
     "types": ["node"],
     "outDir": "dist",
-    "rootDir": "src",
+    // ".." (the repo root), not "src" — 004-publish-pipeline-and's render-recipe.ts/
+    // rebuild-index.ts import ../../../public-site/src/* (a deliberate cross-package layout,
+    // not a published dependency; see that feature's plan.md), which otherwise falls outside
+    // this rootDir. Mirrors tsconfig.test.json's same fix.
+    "rootDir": "..",
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,

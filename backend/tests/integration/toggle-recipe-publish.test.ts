@@ -37,4 +37,15 @@ describe('PATCH /recipes/{id}/publish-toggle (004, FR-001)', () => {
     const result = await handler({ pathParameters: {}, body: '{"selected":true}' } as unknown as APIGatewayProxyEventV2);
     expect(result.statusCode).toBe(400);
   });
+
+  it('returns 400 when selected is not a boolean (Minor: was unvalidated)', async () => {
+    const recipe = await createRecipe({ locale: 'en', name: 'Toggle Validation Target' });
+
+    const result = await handler({
+      pathParameters: { id: recipe.recipeId },
+      body: JSON.stringify({ selected: 'yes' }),
+    } as unknown as APIGatewayProxyEventV2);
+
+    expect(result.statusCode).toBe(400);
+  });
 });
