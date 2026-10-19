@@ -29,8 +29,12 @@ function renderNode(node: unknown): string {
       return `<p>${renderChildren(node.content)}</p>`;
     case 'bulletList':
       return `<ul>${renderChildren(node.content)}</ul>`;
+    case 'orderedList':
+      return `<ol>${renderChildren(node.content)}</ol>`;
     case 'listItem':
       return `<li>${renderChildren(node.content)}</li>`;
+    case 'hardBreak':
+      return '<br>';
     case 'image': {
       const src = typeof node.attrs?.src === 'string' ? node.attrs.src : '';
       const alt = typeof node.attrs?.alt === 'string' ? node.attrs.alt : '';
@@ -57,10 +61,14 @@ function renderNode(node: unknown): string {
  * Renders a Tiptap/ProseMirror JSON document (a recipe step's rich text) to static HTML.
  *
  * @remarks
- * Deliberately bounded to exactly the node/mark types the backoffice editor exposes
- * (`frontend/src/components/StepsEditor.tsx`'s toolbar: bold, italic, bullet list, image) rather
- * than depending on the full `@tiptap/html` renderer and its extension set — a much smaller,
- * Lambda-bundle-friendly footprint for a fixed, known vocabulary.
+ * Deliberately bounded to a fixed, known vocabulary rather than depending on the full
+ * `@tiptap/html` renderer and its extension set — a much smaller, Lambda-bundle-friendly
+ * footprint. Covers every node/mark `StepsEditor.tsx`'s toolbar exposes directly (bold, italic,
+ * bullet list, image) plus `orderedList`/`hardBreak`, which are reachable through the editor's
+ * unconfigured `StarterKit` via markdown-style shortcuts ("1. ", Shift+Enter) even without a
+ * toolbar button — any other node type not in this list renders its children only, rather than
+ * crashing or (for a leaf node like `hardBreak` used to be, before it had its own case) silently
+ * dropping content.
  */
 export function renderRichText(doc: object): string {
   return renderNode(doc);

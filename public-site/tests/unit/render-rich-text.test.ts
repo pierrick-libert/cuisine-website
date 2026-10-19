@@ -45,6 +45,35 @@ describe('renderRichText', () => {
     expect(renderRichText(doc)).toBe('<img src="https://example.com/a.jpg" alt="A photo">');
   });
 
+  it('renders an ordered list (Minor: StepsEditor uses an unconfigured StarterKit, reachable via "1. " shortcut)', () => {
+    const doc = {
+      type: 'doc',
+      content: [
+        {
+          type: 'orderedList',
+          content: [
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'First' }] }] },
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Second' }] }] },
+          ],
+        },
+      ],
+    };
+    expect(renderRichText(doc)).toBe('<ol><li><p>First</p></li><li><p>Second</p></li></ol>');
+  });
+
+  it('renders a hard break as <br>, not silently dropping it (Minor: Shift+Enter in the editor)', () => {
+    const doc = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Line one' }, { type: 'hardBreak' }, { type: 'text', text: 'Line two' }],
+        },
+      ],
+    };
+    expect(renderRichText(doc)).toBe('<p>Line one<br>Line two</p>');
+  });
+
   it('escapes HTML-significant characters in text', () => {
     const doc = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '<script>alert(1)</script> & "quotes"' }] }] };
     expect(renderRichText(doc)).toBe('<p>&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;quotes&quot;</p>');
