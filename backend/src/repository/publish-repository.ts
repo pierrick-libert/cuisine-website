@@ -1,5 +1,5 @@
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
-import { GetCommand, PutCommand, DeleteCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, DeleteCommand, QueryCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient, TABLE_NAME } from './table-client.js';
 import type { PipelineStatus, PublishedSnapshot, PublishStatus, RecipeMeta } from '../domain/types.js';
 
@@ -82,6 +82,28 @@ export async function deletePublishedSnapshot(recipeId: string, locale: string):
   await docClient.send(
     new DeleteCommand({ TableName: TABLE_NAME, Key: publishedKey(recipeId, locale) }),
   );
+}
+
+/**
+ * Gets every published-snapshot record for one recipe, across every locale it was published in.
+ *
+ * @remarks
+ * A `Query` by partition key (`RECIPE#<id>`) filtered to `SK` starting with `PUBLISHED#` — this
+ * is what `remove-recipe.ts` reads to find exactly which rendered pages to delete, since the
+ * slug/locale set actually published may differ from the recipe's current draft locales.
+ */
+export async function getPublishedSnapshotsForRecipe(recipeId: string): Promise<PublishedSnapshot[]> {
+  const result = await docClient.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
+      ExpressionAttributeValues: { ':pk': `RECIPE#${recipeId}`, ':prefix': 'PUBLISHED#' },
+    }),
+  );
+  return (result.Items ?? []).map((item) => {
+    const { PK: _pk, SK: _sk, ...rest } = item as PublishedSnapshot & { PK: string; SK: string };
+    return rest;
+  });
 }
 
 /**
