@@ -1,6 +1,7 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getRecipe } from '../repository/recipe-repository.js';
 import {
+  deletePublishedSnapshot,
   getPublishedSnapshot,
   putPublishedSnapshot,
   setPublishStatus,
@@ -37,6 +38,15 @@ export async function renderRecipe(recipeId: string): Promise<void> {
 
   const priorStatus = recipe.publishStatus;
   await setPublishStatus(recipeId, 'publishing');
+  // Locales that are newly published in THIS attempt (no prior snapshot at all) — rolled back if
+  // a later locale fails, so a partial failure never leaves a brand-new locale live while the
+  // overall publishStatus reverts to its prior (never-live) value (Important 13 from code
+  // review: the index must never disagree with publishStatus). A locale that was *already* live
+  // before this attempt and re-rendered successfully is NOT rolled back on a later locale's
+  // failure — its prior state was live, so FR-010 ("leave prior state intact") is satisfied by
+  // simply keeping the freshly-rendered content, not deleting already-public content over an
+  // unrelated locale's failure.
+  const newlyPublishedThisAttempt: Array<{ locale: string; slug: string }> = [];
 
   try {
     for (const [locale, content] of Object.entries(recipe.locales) as Array<[string, RecipeLocaleContent]>) {
@@ -84,10 +94,15 @@ export async function renderRecipe(recipeId: string): Promise<void> {
         categoryId: recipe.categoryId,
         renderedAt: new Date().toISOString(),
       });
+      if (!previousSnapshot) newlyPublishedThisAttempt.push({ locale, slug });
     }
 
     await setPublishStatus(recipeId, 'live');
   } catch (err) {
+    for (const { locale, slug } of newlyPublishedThisAttempt) {
+      await s3.send(new DeleteObjectCommand({ Bucket: PUBLIC_BUCKET_NAME, Key: `${locale}/recipes/${slug}.html` }));
+      await deletePublishedSnapshot(recipeId, locale);
+    }
     await setPublishStatus(recipeId, priorStatus);
     throw err;
   } finally {

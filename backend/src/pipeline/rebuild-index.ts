@@ -81,6 +81,11 @@ async function uploadStaticAssets(): Promise<void> {
 export async function rebuildIndex(): Promise<void> {
   await uploadStaticAssets();
 
+  // A recipe only ever has a published-snapshot item for a locale it is actually live in —
+  // render-recipe.ts rolls back any locale it wrote during a failed attempt (Important 13 from
+  // code review), so "a snapshot exists" and "publishStatus is live" never disagree. This keeps
+  // the index built exclusively from the snapshot table, never needing to cross-reference live
+  // recipe state (FR-013, research.md).
   const snapshots = await listPublishedSnapshots();
   const byLocale = groupByLocale(snapshots);
   const categorySlugCache = new Map<string, string | null>();

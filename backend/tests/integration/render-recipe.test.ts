@@ -122,6 +122,49 @@ describe('renderRecipe (004, User Story 1)', () => {
     expect(after?.selectedForNextPublish).toBe(false);
   });
 
+  it('rolls back a locale successfully written this attempt when a later locale fails (Important 13)', async () => {
+    const recipe = await createRecipe({ locale: 'en', name: 'Partial Locale Failure' });
+    await updateRecipe(recipe.recipeId, { locale: 'fr', name: 'Echec Partiel De Locale' });
+    await setSelectedForNextPublish(recipe.recipeId, true);
+    sendMock.mockClear();
+    // The first locale's PutObject succeeds, the second's fails — simulating a transient error
+    // partway through a multi-locale render.
+    sendMock.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error('S3 is down'));
+
+    await expect(renderRecipe(recipe.recipeId)).rejects.toThrow('S3 is down');
+
+    // The successfully-written locale's page and snapshot must be rolled back — otherwise the
+    // recipe would be `not_published` while still having a live page and a browse-index entry
+    // for the locale that "succeeded".
+    const deleteCalls = sendMock.mock.calls.filter((call) => 'input' in (call[0] as object) && 'Key' in (call[0] as { input: Record<string, unknown> }).input);
+    const remainingSnapshots = await listPublishedSnapshots();
+    expect(remainingSnapshots.find((s) => s.recipeId === recipe.recipeId)).toBeUndefined();
+    const deletedKeys = deleteCalls.map((call) => (call[0] as { input: { Key: string } }).input.Key);
+    expect(deletedKeys.some((key) => key.startsWith('en/recipes/') || key.startsWith('fr/recipes/'))).toBe(true);
+  });
+
+  it('does not roll back an already-live locale that re-rendered successfully, even if a different locale fails later', async () => {
+    const recipe = await createRecipe({ locale: 'en', name: 'Already Live Locale' });
+    await setSelectedForNextPublish(recipe.recipeId, true);
+    await renderRecipe(recipe.recipeId); // 'en' is now live with a real snapshot.
+
+    await updateRecipe(recipe.recipeId, { locale: 'fr', name: 'Nouvelle Locale Qui Va Echouer' });
+    await setSelectedForNextPublish(recipe.recipeId, true);
+    sendMock.mockClear();
+    // 'en' re-renders fine (first call); 'fr' (the new locale) fails.
+    sendMock.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error('S3 is down'));
+
+    await expect(renderRecipe(recipe.recipeId)).rejects.toThrow('S3 is down');
+
+    const remainingSnapshots = await listPublishedSnapshots();
+    const enSnapshot = remainingSnapshots.find((s) => s.recipeId === recipe.recipeId && s.locale === 'en');
+    expect(enSnapshot).toBeDefined(); // not rolled back — it was already live before this attempt.
+    const frSnapshot = remainingSnapshots.find((s) => s.recipeId === recipe.recipeId && s.locale === 'fr');
+    expect(frSnapshot).toBeUndefined(); // the newly-added locale that failed is not left behind.
+    const after = await getRecipe(recipe.recipeId);
+    expect(after?.publishStatus).toBe('live'); // reverted to its prior (already-live) state.
+  });
+
   describe('handler (Step Functions Map-state event shape)', () => {
     it('accepts { recipeId } as its event, not a bare string (Critical: ASL event shape)', async () => {
       const recipe = await createRecipe({ locale: 'en', name: 'Handler Shape Recipe' });
