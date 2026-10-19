@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { handler as createHandler } from '../../src/handlers/create-recipe.js';
 import { handler as deleteHandler } from '../../src/handlers/delete-recipe.js';
 import { handler as getHandler } from '../../src/handlers/get-recipe.js';
+import { setPublishStatus } from '../../src/repository/publish-repository.js';
 import { ensureTable, parseBody } from './helpers.js';
 import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 
@@ -22,5 +23,17 @@ describe('DELETE /recipes/{id} (US2, FR-013)', () => {
   it('returns 404 for a non-existent recipe', async () => {
     const result = await deleteHandler({ pathParameters: { id: 'does-not-exist' } } as unknown as APIGatewayProxyEventV2);
     expect(result.statusCode).toBe(404);
+  });
+
+  it('refuses to delete a recipe that is currently live (Important 14)', async () => {
+    const created = await createHandler({ body: JSON.stringify({ locale: 'en', name: 'Currently Live' }) } as unknown as APIGatewayProxyEventV2);
+    const { recipeId } = parseBody<{ recipeId: string }>(created);
+    await setPublishStatus(recipeId, 'live');
+
+    const deleteResult = await deleteHandler({ pathParameters: { id: recipeId } } as unknown as APIGatewayProxyEventV2);
+
+    expect(deleteResult.statusCode).toBe(409);
+    const getResult = await getHandler({ pathParameters: { id: recipeId } } as unknown as APIGatewayProxyEventV2);
+    expect(getResult.statusCode).toBe(200); // still exists — the delete was refused, not silently ignored.
   });
 });

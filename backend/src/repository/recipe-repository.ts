@@ -261,12 +261,19 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
 /**
  * Deletes a recipe and all of its locale content (User Story 2, FR-013).
  *
+ * @remarks
+ * Refuses to delete a recipe that is currently `'live'`, `'publishing'`, or `'unpublishing'`
+ * (Important 14 from code review) — deleting one's draft content doesn't remove its already-
+ * rendered public page or published-snapshot record, which would otherwise become permanently
+ * public with no way left to toggle or unpublish it. The owner must unpublish first.
+ *
  * @param recipeId - The recipe's id.
- * @returns `true` if the recipe existed and was deleted; `false` if it did not exist.
+ * @returns `'deleted'`, `'not_found'`, or `'still_live'` (the recipe must be unpublished first).
  */
-export async function deleteRecipe(recipeId: string): Promise<boolean> {
+export async function deleteRecipe(recipeId: string): Promise<'deleted' | 'not_found' | 'still_live'> {
   const existing = await getRecipe(recipeId);
-  if (!existing) return false;
+  if (!existing) return 'not_found';
+  if (existing.publishStatus !== 'not_published') return 'still_live';
 
   const keysToDelete = [metaKey(recipeId), ...Object.keys(existing.locales).map((locale) => localeKey(recipeId, locale))];
   await docClient.send(
@@ -274,7 +281,7 @@ export async function deleteRecipe(recipeId: string): Promise<boolean> {
       TransactItems: keysToDelete.map((Key) => ({ Delete: { TableName: TABLE_NAME, Key } })),
     }),
   );
-  return true;
+  return 'deleted';
 }
 
 /**
