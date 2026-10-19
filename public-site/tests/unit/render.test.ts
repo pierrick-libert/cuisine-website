@@ -1,4 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { renderCategoryShellPage, renderRecipePage } from '../../src/render.js';
 
 describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy inside a Lambda task")', () => {
@@ -28,6 +31,39 @@ describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy in
     });
 
     expect(html).not.toContain('<p></p>');
+  });
+});
+
+describe('TEMPLATES_DIR resolution in a bundled Lambda (Critical: template bundling)', () => {
+  it('resolves templates relative to LAMBDA_TASK_ROOT when deployed, not the (bundled-away) source tree', async () => {
+    // A deliberately DIFFERENT template from the real one, so this only passes if the code
+    // actually reads from LAMBDA_TASK_ROOT — simulates infra/pipeline.ts's copyFiles placing
+    // templates/ at the function package root (the real deployed layout, where
+    // import.meta.url-relative resolution would point at a location esbuild's single-file
+    // bundle doesn't have, since no copyFiles step touches a bundled Lambda's source tree).
+    const taskRoot = mkdtempSync(path.join(tmpdir(), 'lambda-task-root-'));
+    const templatesDir = path.join(taskRoot, 'templates');
+    mkdirSync(templatesDir, { recursive: true });
+    writeFileSync(path.join(templatesDir, 'recipe-detail.njk'), 'FAKE TASK ROOT TEMPLATE: {{ recipe.title }}');
+    process.env.LAMBDA_TASK_ROOT = taskRoot;
+
+    try {
+      // Re-import so the module re-evaluates TEMPLATES_DIR against the env var just set.
+      vi.resetModules();
+      const { renderRecipePage: renderWithTaskRoot } = await import('../../src/render.js');
+      const html = await renderWithTaskRoot({
+        locale: 'en',
+        title: 'Task Root Recipe',
+        description: '',
+        ingredientGroups: [],
+        stepsHtml: [],
+      });
+      expect(html).toBe('FAKE TASK ROOT TEMPLATE: Task Root Recipe');
+    } finally {
+      delete process.env.LAMBDA_TASK_ROOT;
+      rmSync(taskRoot, { recursive: true, force: true });
+      vi.resetModules();
+    }
   });
 });
 

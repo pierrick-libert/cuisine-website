@@ -91,6 +91,14 @@ const toggleRecipePublish = new sst.aws.Function('ToggleRecipePublishFunction', 
 // `permissions` instead.
 const pipelineEnvironment = { ...environment, PIPELINE_STATE_MACHINE_ARN: publishPipeline.arn };
 
+// `states:DescribeExecution`'s IAM resource type is an *execution* ARN
+// (`...:execution:<state-machine-name>:<execution-name>`), not the state machine ARN itself
+// (that's StartExecution's resource type) — granting the state machine ARN here would make every
+// DescribeExecution call AccessDenied as soon as a run starts, permanently stuck at
+// `running: true` since nothing else ever clears PIPELINE#STATUS (research.md's self-heal
+// depends entirely on this call succeeding).
+const publishPipelineExecutionArnPattern = $interpolate`arn:aws:states:${aws.getRegionOutput().region}:${aws.getCallerIdentityOutput({}).accountId}:execution:CLP-PublishPipeline:*`;
+
 const startPublish = new sst.aws.Function('StartPublishFunction', {
   name: 'CLP-StartPublish',
   handler: 'backend/src/handlers/start-publish.handler',
@@ -115,7 +123,7 @@ const getPublishStatus = new sst.aws.Function('GetPublishStatusFunction', {
   runtime,
   environment,
   link: [table],
-  permissions: [{ actions: ['states:DescribeExecution'], resources: [publishPipeline.arn] }],
+  permissions: [{ actions: ['states:DescribeExecution'], resources: [publishPipelineExecutionArnPattern] }],
 });
 
 // No explicit physical name here — API Gateway HTTP APIs use AWS-assigned opaque ids, not

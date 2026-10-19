@@ -4,7 +4,15 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
+// In a deployed Lambda, SST's esbuild bundles this module into a single file and copies
+// templates/ to the function package root via `copyFiles` (infra/pipeline.ts) — `import.meta.url`
+// no longer points anywhere near the original source tree, so AWS's own `LAMBDA_TASK_ROOT` (set
+// to the package root at runtime) is used instead when present. Locally/in tests, where this
+// module runs straight from source with no bundling, `LAMBDA_TASK_ROOT` is unset and the
+// source-relative path is used.
+const TEMPLATES_DIR = process.env.LAMBDA_TASK_ROOT
+  ? path.join(process.env.LAMBDA_TASK_ROOT, 'templates')
+  : path.join(__dirname, '..', 'templates');
 
 export interface RecipeRenderData {
   locale: string;
