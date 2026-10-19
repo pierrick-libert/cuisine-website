@@ -1,4 +1,4 @@
-/** The minimal recipe shape {@link buildPublishPlan} needs — a subset of {@link import('./types.js').RecipeMeta}. */
+/** The minimal recipe shape {@link buildPublishPlan} needs — a subset of `RecipeMeta` (types.ts). */
 export interface SelectableRecipe {
   recipeId: string;
   selectedForNextPublish: boolean;

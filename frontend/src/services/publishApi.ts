@@ -2,8 +2,7 @@
 // contracts/publish-api.md).
 
 import { getAccessToken } from './auth.js';
-
-export type PublishStatus = 'not_published' | 'live' | 'publishing' | 'unpublishing';
+import type { PublishStatus } from './recipesApi.js';
 
 /** Thrown by {@link startPublish}/{@link startUnpublish} so callers can distinguish a `409` (a
  * run is already in progress, FR-009) from any other failure. */

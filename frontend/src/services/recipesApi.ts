@@ -52,12 +52,19 @@ export interface RecipeDetail {
   availableLocales: string[];
 }
 
+/** A recipe's current actual public state (004-publish-pipeline-and FR-008). */
+export type PublishStatus = 'not_published' | 'live' | 'publishing' | 'unpublishing';
+
 /** One row of the `GET /recipes` listing response. */
 export interface RecipeSummary {
   recipeId: string;
   name: string;
   categoryId: string | null;
   tags: string[];
+  /** The one-shot "included in the next Publish/Unpublish run" toggle (FR-001). */
+  selectedForNextPublish: boolean;
+  /** This recipe's current actual public state, independent of the toggle above (FR-008). */
+  publishStatus: PublishStatus;
 }
 
 /** The `POST`/`PUT /recipes` request body — see `contracts/recipes-api.md`. */
