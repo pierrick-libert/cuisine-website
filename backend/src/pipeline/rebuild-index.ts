@@ -59,18 +59,29 @@ function groupByLocale(snapshots: PublishedSnapshot[]): Map<string, PublishedSna
 }
 
 /**
- * Uploads the public site's one static client-side asset (Alpine.js browse/search logic) on
- * every run — it's never otherwise deployed (no build step writes to the public bucket; see
- * `public-site/assets/browse.js`'s own comment on why it's a plain script, not a module).
+ * Uploads the public site's static client-side assets (the Alpine.js browse/search logic and
+ * the shared stylesheet) on every run — neither is ever otherwise deployed (no build step writes
+ * to the public bucket; see `public-site/assets/browse.js`'s own comment on why it's a plain
+ * script, not a module).
  */
 async function uploadStaticAssets(): Promise<void> {
-  const body = readFileSync(path.join(ASSETS_DIR, 'browse.js'), 'utf-8');
+  const browseJs = readFileSync(path.join(ASSETS_DIR, 'browse.js'), 'utf-8');
   await s3.send(
     new PutObjectCommand({
       Bucket: PUBLIC_BUCKET_NAME,
       Key: 'assets/browse.js',
-      Body: body,
+      Body: browseJs,
       ContentType: 'application/javascript',
+    }),
+  );
+
+  const styleCss = readFileSync(path.join(ASSETS_DIR, 'style.css'), 'utf-8');
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: PUBLIC_BUCKET_NAME,
+      Key: 'assets/style.css',
+      Body: styleCss,
+      ContentType: 'text/css',
     }),
   );
 }

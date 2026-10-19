@@ -2,23 +2,36 @@
 <html lang="{{ category.locale }}">
 <head>
   <meta charset="utf-8">
-  <title>{{ category.name }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ category.name }} — Pierrick's Sunday Kitchen</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,600;0,700&family=Karla:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/assets/style.css">
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 </head>
 <body>
-  <h1>{{ category.name }}</h1>
-  <div
-    x-data="categoryBrowse('{{ category.locale }}', '{{ category.slug }}')"
-    x-init="load()"
-  >
-    <input type="search" x-model="query" placeholder="Search recipes...">
-    <ul>
+  <div class="page" x-data="categoryBrowse('{{ category.locale }}', '{{ category.slug }}')" x-init="load()">
+    <div class="topbar">
+      <a class="brand" href="/{{ category.locale }}/index.html">Pierrick's Sunday Kitchen</a>
+    </div>
+
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">Category</div>
+        <h1>{{ category.name }}</h1>
+      </div>
+      <div class="search-box">
+        <input type="search" x-model="query" placeholder="Search {{ category.name | lower }}…">
+      </div>
+    </div>
+
+    <div class="recipe-grid">
       <template x-for="recipe in filtered" :key="recipe.recipeId">
-        <li>
-          <a :href="'/' + locale + '/recipes/' + recipe.slug + '.html'" x-text="recipe.title"></a>
-        </li>
+        <a class="recipe-card" :href="'/' + locale + '/recipes/' + recipe.slug + '.html'">
+          <h2 x-text="recipe.title"></h2>
+        </a>
       </template>
-    </ul>
+    </div>
+    <p class="empty-state" x-show="filtered.length === 0">No recipes match yet.</p>
   </div>
   <script src="/assets/browse.js"></script>
 </body>

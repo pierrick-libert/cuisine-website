@@ -1,0 +1,200 @@
+/* Shared visual design for the public site, extracted from the approved mockups
+   (mockups/Main.dc.html, mockups/Browse.dc.html) — same fonts/colors/card language across the
+   home page, category shells, and recipe detail pages. A plain stylesheet, not a framework,
+   consistent with the constitution's "lightweight client-side" stance. */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Karla', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: oklch(98% 0.016 145);
+  color: oklch(22% 0.006 145);
+}
+
+a { color: oklch(46% 0.1 145); text-decoration: none; }
+a:hover { color: oklch(37% 0.1 145); }
+
+h1, h2, h3 { font-family: 'Spectral', Georgia, 'Times New Roman', serif; margin: 0; }
+button, input { font-family: inherit; }
+
+.page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 28px 32px 80px;
+}
+
+/* Top bar */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 22px;
+  border-bottom: 1px solid oklch(89% 0.014 145);
+}
+.topbar .brand {
+  font-family: 'Spectral', serif;
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: 0.02em;
+}
+.topbar a { color: inherit; }
+
+/* Category badge */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: oklch(40% 0.1 145);
+  background: oklch(89% 0.05 145);
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+/* Recipe hero (detail page) */
+.hero { padding-top: 36px; max-width: 720px; }
+.hero h1 { font-size: 42px; line-height: 1.12; font-weight: 700; margin-top: 14px; }
+.hero p.description {
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.6;
+  color: oklch(40% 0.006 145);
+  margin: 14px 0 0;
+}
+
+/* Two-column recipe body */
+.recipe-body { display: flex; gap: 40px; margin-top: 40px; align-items: flex-start; flex-wrap: wrap; }
+
+.ingredients-card {
+  width: 340px;
+  flex-shrink: 0;
+  background: oklch(99% 0.012 145);
+  border: 1px solid oklch(90% 0.014 145);
+  border-radius: 14px;
+  padding: 24px;
+}
+.ingredients-card h2 { font-size: 20px; margin-bottom: 16px; }
+.ingredients-card .group-name {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: oklch(40% 0.1 145);
+  margin: 18px 0 10px;
+}
+.ingredients-card ul { list-style: none; margin: 0; padding: 0; }
+.ingredients-card li {
+  padding: 6px 0;
+  border-bottom: 1px solid oklch(93% 0.012 145);
+  font-size: 14px;
+}
+
+.steps { flex: 1; min-width: 280px; }
+.steps h2 { font-size: 20px; margin-bottom: 20px; }
+.steps ol { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+.steps li {
+  counter-increment: step;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 22px;
+  line-height: 1.7;
+  font-size: 15px;
+}
+.steps li::before {
+  content: counter(step);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent, #5C7A52);
+  color: oklch(99% 0.006 145);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.steps li p { margin: 0; }
+.steps li img { max-width: 100%; border-radius: 10px; margin-top: 10px; }
+
+/* Header + search (home page and category shells) */
+.page-header {
+  padding-top: 30px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.page-header .eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: oklch(40% 0.1 145);
+  margin-bottom: 6px;
+}
+.page-header h1 { font-size: 34px; }
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: oklch(99% 0.012 145);
+  border: 1px solid oklch(87% 0.014 145);
+  border-radius: 10px;
+  padding: 9px 14px;
+  min-width: 260px;
+}
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: oklch(22% 0.006 145);
+  width: 100%;
+}
+
+/* Category link list (home page) */
+.category-list {
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.category-list a {
+  display: block;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: oklch(99% 0.012 145);
+  color: oklch(40% 0.006 145);
+  border: 1px solid oklch(87% 0.014 145);
+}
+.category-list a:hover { background: var(--accent, #5C7A52); color: oklch(99% 0.006 145); border-color: var(--accent, #5C7A52); }
+
+/* Recipe card grid (category shells and home-page search results) */
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+  margin-top: 30px;
+}
+.recipe-card {
+  background: oklch(99% 0.012 145);
+  border: 1px solid oklch(90% 0.014 145);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.recipe-card h2 { font-size: 17px; line-height: 1.35; font-weight: 700; }
+.recipe-card .badge { align-self: flex-start; }
+
+.empty-state { color: oklch(55% 0.006 145); font-size: 14px; margin-top: 30px; }

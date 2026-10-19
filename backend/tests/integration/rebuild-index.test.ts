@@ -39,6 +39,16 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
     expect(assetCall!.Body as string).toContain('function categoryBrowse');
   });
 
+  it('uploads the shared stylesheet to the public bucket', async () => {
+    await rebuildIndex();
+
+    const calls = s3Calls();
+    const styleCall = calls.find((c) => c.Key === 'assets/style.css');
+    expect(styleCall).toBeDefined();
+    expect(styleCall!.ContentType).toBe('text/css');
+    expect(styleCall!.Body as string).toContain('.recipe-card');
+  });
+
   it('writes a browse-index.json per locale, built only from published snapshots', async () => {
     const category = await findOrCreateCategory('Desserts');
     await putPublishedSnapshot({

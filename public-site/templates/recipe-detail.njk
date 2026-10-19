@@ -2,23 +2,42 @@
 <html lang="{{ recipe.locale }}">
 <head>
   <meta charset="utf-8">
-  <title>{{ recipe.title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ recipe.title }} — Pierrick's Sunday Kitchen</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;0,700;1,400&family=Karla:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
-  <h1>{{ recipe.title }}</h1>
-  {% if recipe.description %}<p>{{ recipe.description }}</p>{% endif %}
-  <section class="ingredients">
-    {% for group in recipe.ingredientGroups %}
-      {% if group.name %}<h2>{{ group.name }}</h2>{% endif %}
-      <ul>
-        {% for line in group.lines %}<li>{{ line.text }}</li>{% endfor %}
-      </ul>
-    {% endfor %}
-  </section>
-  <section class="steps">
-    <ol>
-      {% for stepHtml in recipe.stepsHtml %}<li>{{ stepHtml | safe }}</li>{% endfor %}
-    </ol>
-  </section>
+  <div class="page">
+    <div class="topbar">
+      <a class="brand" href="/{{ recipe.locale }}/index.html">Pierrick's Sunday Kitchen</a>
+    </div>
+
+    <div class="hero">
+      <h1>{{ recipe.title }}</h1>
+      {% if recipe.description %}<p class="description">{{ recipe.description }}</p>{% endif %}
+    </div>
+
+    <div class="recipe-body">
+      {% if recipe.ingredientGroups.length %}
+      <div class="ingredients-card">
+        <h2>Ingredients</h2>
+        {% for group in recipe.ingredientGroups %}
+          {% if group.name %}<div class="group-name">{{ group.name }}</div>{% endif %}
+          <ul>
+            {% for line in group.lines %}<li>{{ line.text }}</li>{% endfor %}
+          </ul>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="steps">
+        <h2>Method</h2>
+        <ol>
+          {% for stepHtml in recipe.stepsHtml %}<li>{{ stepHtml | safe }}</li>{% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
