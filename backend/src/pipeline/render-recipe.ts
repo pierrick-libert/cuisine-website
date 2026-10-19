@@ -1,0 +1,81 @@
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getRecipe } from '../repository/recipe-repository.js';
+import { putPublishedSnapshot, setPublishStatus, setSelectedForNextPublish } from '../repository/publish-repository.js';
+import { slugify } from '../lib/slug.js';
+import { renderRecipePage } from '../../../public-site/src/render.js';
+import { renderRichText } from '../../../public-site/src/render-rich-text.js';
+import type { IngredientLine, RecipeLocaleContent } from '../domain/types.js';
+
+const s3 = new S3Client({});
+const PUBLIC_BUCKET_NAME = process.env.PUBLIC_BUCKET_NAME ?? 'clp-cuisine-website-public';
+
+function formatIngredientLine(line: IngredientLine, name: string): string {
+  return line.unit ? `${line.quantity} ${line.unit} ${name}` : `${line.quantity} ${name}`;
+}
+
+/**
+ * Renders and publishes one recipe, in every locale it has content for (Map-state task behind
+ * `POST /publish` — User Story 1, FR-015).
+ *
+ * @remarks
+ * On success: uploads each locale's rendered page to the public bucket, writes that locale's
+ * published-snapshot record, and sets `publishStatus` to `'live'`. On failure: leaves
+ * `publishStatus` at whatever it was before this call (FR-010) and re-throws, so Step Functions'
+ * Catch handling sees the failure. Either way, resets `selectedForNextPublish` to `false`
+ * (FR-005) — a failed recipe is not silently retried; the owner re-toggles it like any other.
+ *
+ * @param recipeId - The recipe to render.
+ */
+export async function renderRecipe(recipeId: string): Promise<void> {
+  const recipe = await getRecipe(recipeId);
+  if (!recipe) return;
+
+  const priorStatus = recipe.publishStatus;
+  await setPublishStatus(recipeId, 'publishing');
+
+  try {
+    for (const [locale, content] of Object.entries(recipe.locales) as Array<[string, RecipeLocaleContent]>) {
+      const slug = slugify(content.name);
+      const stepsHtml = recipe.stepsOrder.map((stepId) => renderRichText(content.steps[stepId] ?? { type: 'doc', content: [] }));
+      const ingredientGroups = recipe.ingredientGroups.map((group) => ({
+        name: content.groupNames[group.groupId] ?? null,
+        lines: group.lines.map((line) => ({
+          text: formatIngredientLine(line, content.ingredientNames[line.lineId] ?? ''),
+        })),
+      }));
+
+      const html = await renderRecipePage({
+        locale,
+        title: content.name,
+        description: content.description,
+        ingredientGroups,
+        stepsHtml,
+      });
+
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: PUBLIC_BUCKET_NAME,
+          Key: `${locale}/recipes/${slug}.html`,
+          Body: html,
+          ContentType: 'text/html',
+        }),
+      );
+
+      await putPublishedSnapshot({
+        recipeId,
+        locale,
+        title: content.name,
+        slug,
+        categoryId: recipe.categoryId,
+        renderedAt: new Date().toISOString(),
+      });
+    }
+
+    await setPublishStatus(recipeId, 'live');
+  } catch (err) {
+    await setPublishStatus(recipeId, priorStatus);
+    throw err;
+  } finally {
+    await setSelectedForNextPublish(recipeId, false);
+  }
+}
