@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="{{ category.locale }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ category.name }}</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+</head>
+<body>
+  <h1>{{ category.name }}</h1>
+  <div
+    x-data="categoryBrowse('{{ category.locale }}', '{{ category.slug }}')"
+    x-init="load()"
+  >
+    <input type="search" x-model="query" placeholder="Search recipes...">
+    <ul>
+      <template x-for="recipe in filtered" :key="recipe.recipeId">
+        <li>
+          <a :href="'/' + locale + '/recipes/' + recipe.slug + '.html'" x-text="recipe.title"></a>
+        </li>
+      </template>
+    </ul>
+  </div>
+  <script src="/assets/browse.js"></script>
+</body>
+</html>

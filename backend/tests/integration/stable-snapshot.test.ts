@@ -8,6 +8,9 @@ vi.mock('@aws-sdk/client-s3', () => ({
   PutObjectCommand: class {
     constructor(public input: unknown) {}
   },
+  DeleteObjectCommand: class {
+    constructor(public input: unknown) {}
+  },
 }));
 
 const { renderRecipe } = await import('../../src/pipeline/render-recipe.js');

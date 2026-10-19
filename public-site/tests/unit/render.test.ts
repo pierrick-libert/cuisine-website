@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderRecipePage } from '../../src/render.js';
+import { renderCategoryShellPage, renderRecipePage } from '../../src/render.js';
 
 describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy inside a Lambda task")', () => {
   it('renders a full HTML page from recipe data', async () => {
@@ -28,5 +28,15 @@ describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy in
     });
 
     expect(html).not.toContain('<p></p>');
+  });
+});
+
+describe('renderCategoryShellPage (004, User Story 4)', () => {
+  it('renders a category shell page wired to the given locale and slug', async () => {
+    const html = await renderCategoryShellPage({ locale: 'en', name: 'Desserts', slug: 'desserts' });
+
+    expect(html).toContain('<html lang="en">');
+    expect(html).toContain('Desserts');
+    expect(html).toContain("categoryBrowse('en', 'desserts')");
   });
 });

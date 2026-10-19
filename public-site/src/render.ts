@@ -40,3 +40,29 @@ export async function renderRecipePage(data: RecipeRenderData): Promise<string> 
   if (!page) throw new Error('recipe-detail.njk did not render.');
   return page.content;
 }
+
+export interface CategoryShellRenderData {
+  locale: string;
+  name: string;
+  slug: string;
+}
+
+/**
+ * Renders one category's shell page via `templates/category-shell.njk` (User Story 4) — mostly
+ * static chrome; the actual recipe listing is fetched and filtered client-side by
+ * `assets/browse.js` against that locale's `browse-index.json`
+ * (`contracts/public-site-index.md`).
+ */
+export async function renderCategoryShellPage(data: CategoryShellRenderData): Promise<string> {
+  const eleventy = new Eleventy(TEMPLATES_DIR, undefined, {
+    quietMode: true,
+    config(eleventyConfig: { addGlobalData: (name: string, data: unknown) => void }) {
+      eleventyConfig.addGlobalData('category', data);
+    },
+  });
+
+  const results = (await eleventy.toJSON()) as Array<{ inputPath: string; content: string }>;
+  const page = results.find((r) => r.inputPath.endsWith('category-shell.njk'));
+  if (!page) throw new Error('category-shell.njk did not render.');
+  return page.content;
+}

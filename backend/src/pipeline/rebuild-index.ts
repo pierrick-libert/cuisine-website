@@ -1,7 +1,8 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { listPublishedSnapshots } from '../repository/publish-repository.js';
-import { getCategoryById } from '../repository/category-repository.js';
+import { getCategoryById, listCategories } from '../repository/category-repository.js';
 import { slugify } from '../lib/slug.js';
+import { renderCategoryShellPage } from '../../../public-site/src/render.js';
 import type { PublishedSnapshot } from '../domain/types.js';
 
 const s3 = new S3Client({});
@@ -53,6 +54,9 @@ export async function rebuildIndex(): Promise<void> {
   const snapshots = await listPublishedSnapshots();
   const byLocale = groupByLocale(snapshots);
   const categorySlugCache = new Map<string, string | null>();
+  // Which (locale, categoryId) pairs currently have at least one live recipe — drives category
+  // shell reconciliation below.
+  const liveLocaleCategoryPairs = new Set<string>();
 
   for (const [locale, localeSnapshots] of byLocale) {
     const recipes: BrowseIndexEntry[] = [];
@@ -64,6 +68,7 @@ export async function rebuildIndex(): Promise<void> {
         categoryId: snapshot.categoryId,
         categorySlug: await resolveCategorySlug(snapshot.categoryId, categorySlugCache),
       });
+      if (snapshot.categoryId) liveLocaleCategoryPairs.add(`${locale}::${snapshot.categoryId}`);
     }
 
     await s3.send(
@@ -74,5 +79,25 @@ export async function rebuildIndex(): Promise<void> {
         ContentType: 'application/json',
       }),
     );
+  }
+
+  // Reconcile category shells: for every (locale, category) pair this rebuild has any knowledge
+  // of (i.e. every locale with at least one live recipe, per the known gap documented in this
+  // feature's ledger regarding locales that have dropped to zero live recipes), create the
+  // shell if the category is live there, or remove it if not (`contracts/public-site-index.md`).
+  for (const locale of byLocale.keys()) {
+    for (const category of await listCategories()) {
+      const slug = slugify(category.displayName);
+      const key = `${locale}/categories/${slug}.html`;
+
+      if (liveLocaleCategoryPairs.has(`${locale}::${category.categoryId}`)) {
+        const html = await renderCategoryShellPage({ locale, name: category.displayName, slug });
+        await s3.send(
+          new PutObjectCommand({ Bucket: PUBLIC_BUCKET_NAME, Key: key, Body: html, ContentType: 'text/html' }),
+        );
+      } else {
+        await s3.send(new DeleteObjectCommand({ Bucket: PUBLIC_BUCKET_NAME, Key: key }));
+      }
+    }
   }
 }
