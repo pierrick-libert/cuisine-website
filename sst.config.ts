@@ -12,6 +12,11 @@ export default $config({
   },
   async run() {
     await import('./infra/storage');
+    // public-site.ts (the public CloudFront distribution) must exist before pipeline.ts, which
+    // reads its distribution id for CloudFront invalidation permissions; pipeline.ts must exist
+    // before api.ts, which needs its state machine ARN for the trigger routes.
+    const { publicSite } = await import('./infra/public-site');
+    await import('./infra/pipeline');
     const { userPool, addAuthClient } = await import('./infra/auth');
     const { api, addRecipeRoutes } = await import('./infra/api');
     const { web } = await import('./infra/web');
@@ -49,6 +54,7 @@ export default $config({
       apiUrl: api.url,
       webUrl: web.url,
       authClientId: authClient.id,
+      publicSiteUrl: publicSite.url,
     };
   },
 });

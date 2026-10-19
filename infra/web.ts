@@ -2,6 +2,14 @@ import { api } from './api';
 
 export const web = new sst.aws.StaticSite('Web', {
   path: 'frontend',
+  // 004-publish-pipeline-and: migrates the backoffice off its auto-generated CloudFront domain
+  // (User Story 5). `sst.aws.dns()` finds the Route 53 hosted zone for `libertpierrick.com`
+  // (delegated there — research.md "Custom domains via SST") and creates the DNS record and the
+  // required `us-east-1` ACM certificate automatically on every deploy.
+  domain: {
+    name: 'admin.cuisine.libertpierrick.com',
+    dns: sst.aws.dns(),
+  },
   build: {
     command: 'npm run build',
     output: 'dist',

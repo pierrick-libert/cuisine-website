@@ -1,4 +1,5 @@
 import { table, imagesBucket } from './storage';
+import { publishPipeline } from './pipeline';
 
 // Shared by every Lambda below — resource-linking (`link`) grants least-privilege IAM to the
 // table; `TABLE_NAME` is set explicitly so the existing handlers' `process.env.TABLE_NAME` read
@@ -75,6 +76,48 @@ const translateRecipe = new sst.aws.Function('TranslateRecipeFunction', {
   link: [anthropicApiKey],
 });
 
+// 004-publish-pipeline-and: the toggle is a plain table write (no state-machine access needed).
+const toggleRecipePublish = new sst.aws.Function('ToggleRecipePublishFunction', {
+  name: 'CLP-ToggleRecipePublish',
+  handler: 'backend/src/handlers/toggle-recipe-publish.handler',
+  runtime,
+  environment,
+  link: [table],
+});
+
+// `link` only grants IAM for SST-managed resources; `publishPipeline` is a raw Pulumi
+// `aws.sfn.StateMachine` (no dedicated SST component exists for Step Functions — see
+// infra/pipeline.ts), so `states:StartExecution`/`DescribeExecution` are granted explicitly via
+// `permissions` instead.
+const pipelineEnvironment = { ...environment, PIPELINE_STATE_MACHINE_ARN: publishPipeline.arn };
+
+const startPublish = new sst.aws.Function('StartPublishFunction', {
+  name: 'CLP-StartPublish',
+  handler: 'backend/src/handlers/start-publish.handler',
+  runtime,
+  environment: pipelineEnvironment,
+  link: [table],
+  permissions: [{ actions: ['states:StartExecution'], resources: [publishPipeline.arn] }],
+});
+
+const startUnpublish = new sst.aws.Function('StartUnpublishFunction', {
+  name: 'CLP-StartUnpublish',
+  handler: 'backend/src/handlers/start-unpublish.handler',
+  runtime,
+  environment: pipelineEnvironment,
+  link: [table],
+  permissions: [{ actions: ['states:StartExecution'], resources: [publishPipeline.arn] }],
+});
+
+const getPublishStatus = new sst.aws.Function('GetPublishStatusFunction', {
+  name: 'CLP-GetPublishStatus',
+  handler: 'backend/src/handlers/get-publish-status.handler',
+  runtime,
+  environment,
+  link: [table],
+  permissions: [{ actions: ['states:DescribeExecution'], resources: [publishPipeline.arn] }],
+});
+
 // No explicit physical name here — API Gateway HTTP APIs use AWS-assigned opaque ids, not
 // controllable names, so the deploy role's permissions policy leaves this service unscoped
 // (Resource: "*", documented in infra/iam/README.md) rather than trying to prefix-match it.
@@ -86,9 +129,9 @@ const translateRecipe = new sst.aws.Function('TranslateRecipeFunction', {
 export const api = new sst.aws.ApiGatewayV2('Api');
 
 /**
- * Adds the `/recipes*`, `/images`, and `/translate` routes (no other API surface — see each
- * feature's FR-0XX requirements), each protected by `authorizerId` (every route requires
- * authentication, with no exceptions).
+ * Adds the `/recipes*`, `/images`, `/translate`, and the 004-publish-pipeline-and publish routes
+ * (no other API surface — see each feature's FR-0XX requirements), each protected by
+ * `authorizerId` (every route requires authentication, with no exceptions — Principle III).
  *
  * @param authorizerId - The Cognito JWT authorizer's id, from `api.addAuthorizer(...)`.
  */
@@ -101,4 +144,8 @@ export function addRecipeRoutes(authorizerId: $util.Output<string>) {
   api.route('DELETE /recipes/{id}', deleteRecipe.arn, { auth });
   api.route('POST /images', createImageUploadUrl.arn, { auth });
   api.route('POST /translate', translateRecipe.arn, { auth });
+  api.route('PATCH /recipes/{id}/publish-toggle', toggleRecipePublish.arn, { auth });
+  api.route('POST /publish', startPublish.arn, { auth });
+  api.route('POST /unpublish', startUnpublish.arn, { auth });
+  api.route('GET /publish-status', getPublishStatus.arn, { auth });
 }
