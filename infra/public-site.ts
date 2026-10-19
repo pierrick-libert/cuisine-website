@@ -11,6 +11,11 @@ export const publicSite = new sst.aws.Router('PublicSite', {
     name: 'cuisine.libertpierrick.com',
     dns: sst.aws.dns(),
   },
+  // Without this, a visitor hitting the bare domain (the natural thing to type) gets S3's raw
+  // 403 AccessDenied — found live: `/en/index.html` served fine, `/` didn't. No per-visitor
+  // locale negotiation (would need a CloudFront Function) — defaulting to `en` is the simplest
+  // fix at this project's scale (constitution Principle IV), not a complete locale-router.
+  transform: { cdn: { defaultRootObject: 'en/index.html' } },
 });
 
 publicSite.routeBucket('/', publicSiteBucket);
