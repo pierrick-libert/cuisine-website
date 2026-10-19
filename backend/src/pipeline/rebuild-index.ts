@@ -12,13 +12,15 @@ import type { PublishedSnapshot } from '../domain/types.js';
 const s3 = new S3Client({});
 const PUBLIC_BUCKET_NAME = process.env.PUBLIC_BUCKET_NAME ?? 'clp-cuisine-website-public';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Named currentDir, not __dirname — see public-site/src/render.ts's comment on the exact same
+// esbuild/Node-ESM collision this avoids.
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
 // Same LAMBDA_TASK_ROOT-aware resolution as public-site/src/render.ts's TEMPLATES_DIR — this
 // file lives alongside render.ts in the same esbuild bundle (infra/pipeline.ts's copyFiles
 // copies public-site/templates AND must also carry assets/, see that file's comment).
 const ASSETS_DIR = process.env.LAMBDA_TASK_ROOT
   ? path.join(process.env.LAMBDA_TASK_ROOT, 'assets')
-  : path.join(__dirname, '..', '..', '..', 'public-site', 'assets');
+  : path.join(currentDir, '..', '..', '..', 'public-site', 'assets');
 
 interface BrowseIndexEntry {
   recipeId: string;

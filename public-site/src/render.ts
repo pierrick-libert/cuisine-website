@@ -3,7 +3,11 @@ import Eleventy from '@11ty/eleventy';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Named currentDir, not __dirname — esbuild auto-injects its own `__dirname` shim into any
+// Node-ESM bundle that references that identifier anywhere, colliding with a user-declared one
+// of the same name ("Identifier '__dirname' has already been declared" — found via a real
+// deployed CLP-RenderRecipe invocation).
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
 // In a deployed Lambda, SST's esbuild bundles this module into a single file and copies
 // templates/ to the function package root via `copyFiles` (infra/pipeline.ts) — `import.meta.url`
 // no longer points anywhere near the original source tree, so AWS's own `LAMBDA_TASK_ROOT` (set
@@ -12,7 +16,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // source-relative path is used.
 const TEMPLATES_DIR = process.env.LAMBDA_TASK_ROOT
   ? path.join(process.env.LAMBDA_TASK_ROOT, 'templates')
-  : path.join(__dirname, '..', 'templates');
+  : path.join(currentDir, '..', 'templates');
 
 export interface RecipeRenderData {
   locale: string;
