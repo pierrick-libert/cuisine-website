@@ -1,0 +1,42 @@
+// @ts-expect-error — @11ty/eleventy ships no type declarations.
+import Eleventy from '@11ty/eleventy';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
+
+export interface RecipeRenderData {
+  locale: string;
+  title: string;
+  description: string;
+  ingredientGroups: Array<{ name: string | null; lines: Array<{ text: string }> }>;
+  /** Each step's rich text, already rendered to HTML by `render-rich-text.ts`. */
+  stepsHtml: string[];
+}
+
+/**
+ * Renders one recipe's detail page via `templates/recipe-detail.njk`.
+ *
+ * @remarks
+ * Uses Eleventy's programmatic `toJSON()` API (renders in memory, writes nothing to disk) rather
+ * than its normal whole-site `write()` build, so a Lambda task can render exactly one recipe per
+ * invocation (research.md's "Rendering recipes with Eleventy inside a Lambda task") — the caller
+ * (`backend/src/pipeline/render-recipe.ts`) uploads the returned HTML to S3 itself.
+ *
+ * @param data - The recipe's content, already locale-resolved and rich-text-rendered.
+ * @returns The rendered HTML page.
+ */
+export async function renderRecipePage(data: RecipeRenderData): Promise<string> {
+  const eleventy = new Eleventy(TEMPLATES_DIR, undefined, {
+    quietMode: true,
+    config(eleventyConfig: { addGlobalData: (name: string, data: unknown) => void }) {
+      eleventyConfig.addGlobalData('recipe', data);
+    },
+  });
+
+  const results = (await eleventy.toJSON()) as Array<{ inputPath: string; content: string }>;
+  const page = results.find((r) => r.inputPath.endsWith('recipe-detail.njk'));
+  if (!page) throw new Error('recipe-detail.njk did not render.');
+  return page.content;
+}
