@@ -31,8 +31,15 @@ export interface IngredientGroup {
   lines: IngredientLine[];
 }
 
-/** Only `'draft'` exists in this feature — publishing (a later feature) will add `'published'`. */
+/** Only `'draft'` exists in this feature — see {@link PublishStatus} for the separate publish state. */
 export type RecipeStatus = 'draft';
+
+/**
+ * A recipe's current actual public state (004-publish-pipeline-and's `publishStatus`, FR-008) —
+ * independent of {@link RecipeMeta.selectedForNextPublish}, which only selects a recipe for the
+ * next run, not its current state.
+ */
+export type PublishStatus = 'not_published' | 'live' | 'publishing' | 'unpublishing';
 
 /**
  * The `RECIPE#<id>/META` DynamoDB item — a recipe's structure and quantities only.
@@ -52,6 +59,14 @@ export interface RecipeMeta {
   stepsOrder: string[];
   createdAt: string;
   updatedAt: string;
+  /**
+   * The one-shot "included in the next Publish/Unpublish run" toggle (004-publish-pipeline-and
+   * FR-001). Reset to `false` by the pipeline once a run acts on this recipe (FR-005) — never by
+   * any other write path.
+   */
+  selectedForNextPublish: boolean;
+  /** This recipe's current actual public state, independent of the toggle above (FR-008). */
+  publishStatus: PublishStatus;
 }
 
 /** An opaque Tiptap JSON document — the backend stores and returns this without inspecting it. */
@@ -96,6 +111,10 @@ export interface RecipeSummary {
   name: string;
   categoryId: string | null;
   tags: string[];
+  /** See {@link RecipeMeta.selectedForNextPublish} (004-publish-pipeline-and, FR-008). */
+  selectedForNextPublish: boolean;
+  /** See {@link RecipeMeta.publishStatus} (004-publish-pipeline-and, FR-008). */
+  publishStatus: PublishStatus;
 }
 
 // --- Request body shapes (POST/PUT /recipes) ---
@@ -171,4 +190,37 @@ export interface TranslateOutput {
   groupNames: Record<string, string>;
   ingredientNames: Record<string, string>;
   steps: Record<string, RichTextDoc>;
+}
+
+// --- 004-publish-pipeline-and ---
+
+/**
+ * The `RECIPE#<id>/PUBLISHED#<locale>` DynamoDB item — what was actually last rendered to the
+ * public site for one recipe in one locale, deliberately decoupled from that recipe's current
+ * draft content (data-model.md). This, not the live draft, is what the browse/search index and
+ * category shells are rebuilt from (FR-013).
+ */
+export interface PublishedSnapshot {
+  recipeId: string;
+  locale: Locale;
+  /** The recipe's name *as actually rendered* — not necessarily the current draft name. */
+  title: string;
+  /** The URL path segment this locale's recipe page was rendered under. */
+  slug: string;
+  /** The category this recipe was filed under *as actually rendered*. */
+  categoryId: string | null;
+  renderedAt: string;
+}
+
+/**
+ * The single `PIPELINE#STATUS` DynamoDB item — exactly one ever exists. Tracks whether a Publish
+ * or Unpublish run is currently in progress (the FR-009 run-lock) and its status, for
+ * `GET /publish-status` polling.
+ */
+export interface PipelineStatus {
+  running: boolean;
+  executionArn: string | null;
+  action: 'publish' | 'unpublish' | null;
+  startedAt: string | null;
+  lastResult: 'succeeded' | 'failed' | null;
 }

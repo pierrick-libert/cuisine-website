@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="{{ home.locale }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pierrick's Sunday Kitchen</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;0,700;1,400&family=Karla:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/assets/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+</head>
+<body>
+  <div class="page" x-data="categoryBrowse('{{ home.locale }}', null)" x-init="load()">
+    <div class="topbar">
+      <a class="brand" href="/{{ home.locale }}/index.html">Pierrick's Sunday Kitchen</a>
+    </div>
+
+    <div class="hero">
+      <h1>Pierrick's Sunday Kitchen</h1>
+      <p class="description">A family recipe collection — browse by category, or search everything below.</p>
+    </div>
+
+    <ul class="category-list">
+      {% for category in home.categories %}
+        <li><a href="/{{ home.locale }}/categories/{{ category.slug }}.html">{{ category.name }}</a></li>
+      {% endfor %}
+    </ul>
+
+    <div class="page-header" style="padding-top: 36px;">
+      <div class="eyebrow" style="margin: 0;">All recipes</div>
+      <div class="search-box">
+        <input type="search" x-model="query" placeholder="Search all recipes…">
+      </div>
+    </div>
+
+    <div class="recipe-grid">
+      <template x-for="recipe in filtered" :key="recipe.recipeId">
+        <a class="recipe-card" :href="'/' + locale + '/recipes/' + recipe.slug + '.html'">
+          <h2 x-text="recipe.title"></h2>
+        </a>
+      </template>
+    </div>
+    <p class="empty-state" x-show="filtered.length === 0">No recipes published yet.</p>
+  </div>
+  <script src="/assets/browse.js"></script>
+</body>
+</html>

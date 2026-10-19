@@ -1,7 +1,8 @@
-import { GetCommand, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient, TABLE_NAME } from './table-client.js';
 import { generateId } from '../lib/id.js';
 import { normalizeCategoryName } from '../domain/category.js';
+import { scanAllItems } from '../lib/dynamo-scan.js';
 import type { Category } from '../domain/types.js';
 
 const categoryKey = (categoryId: string) => ({ PK: `CATEGORY#${categoryId}`, SK: 'META' });
@@ -30,19 +31,20 @@ export async function getCategoryById(categoryId: string): Promise<Category | nu
 export async function findOrCreateCategory(displayName: string): Promise<Category> {
   const normalizedName = normalizeCategoryName(displayName);
 
-  const existing = await docClient.send(
-    new ScanCommand({
-      TableName: TABLE_NAME,
-      FilterExpression: 'begins_with(PK, :prefix) AND SK = :meta AND normalizedName = :norm',
-      ExpressionAttributeValues: {
-        ':prefix': 'CATEGORY#',
-        ':meta': 'META',
-        ':norm': normalizedName,
-      },
-    }),
-  );
-  const found = existing.Items?.[0] as Category | undefined;
-  if (found) return found;
+  const existing = await scanAllItems({
+    TableName: TABLE_NAME,
+    FilterExpression: 'begins_with(PK, :prefix) AND SK = :meta AND normalizedName = :norm',
+    ExpressionAttributeValues: {
+      ':prefix': 'CATEGORY#',
+      ':meta': 'META',
+      ':norm': normalizedName,
+    },
+  });
+  const found = existing[0] as (Category & { PK?: string; SK?: string }) | undefined;
+  if (found) {
+    const { PK: _pk, SK: _sk, ...rest } = found;
+    return rest;
+  }
 
   const category: Category = { categoryId: generateId(), normalizedName, displayName };
   await docClient.send(
@@ -52,4 +54,24 @@ export async function findOrCreateCategory(displayName: string): Promise<Categor
     }),
   );
   return category;
+}
+
+/**
+ * Lists every category in the system.
+ *
+ * @remarks
+ * A full table `Scan`, per constitution Principle IV — the category count at this project's
+ * scale is small. Used by `rebuild-index.ts` to reconcile which category shell pages should
+ * exist per locale.
+ */
+export async function listCategories(): Promise<Category[]> {
+  const items = await scanAllItems({
+    TableName: TABLE_NAME,
+    FilterExpression: 'begins_with(PK, :prefix) AND SK = :meta',
+    ExpressionAttributeValues: { ':prefix': 'CATEGORY#', ':meta': 'META' },
+  });
+  return items.map((item) => {
+    const { PK: _pk, SK: _sk, ...rest } = item as Category & { PK: string; SK: string };
+    return rest;
+  });
 }

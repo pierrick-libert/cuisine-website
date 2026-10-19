@@ -1,6 +1,7 @@
 # Node.js / TypeScript
 node_modules/
 dist/
+_site/
 build/
 *.log
 npm-debug.log*
@@ -23,3 +24,4 @@ Thumbs.db
 *.swp
 .vscode/
 .idea/
+.superpowers/

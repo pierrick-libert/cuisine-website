@@ -36,5 +36,20 @@ npm test            # unit, then integration (needs DynamoDB Local running, see 
 - `src/handlers/` — one Lambda entrypoint per API operation
 - `src/domain/` — types, validation (ingredient lines, category normalization), errors
 - `src/repository/` — DynamoDB access (single table, no secondary indexes)
+- `src/pipeline/` — the publish/unpublish Step Functions task Lambdas (render-recipe,
+  remove-recipe, rebuild-index, invalidate-cdn) — see
+  [`../specs/004-publish-pipeline-and/`](../specs/004-publish-pipeline-and/). `render-recipe.ts`
+  and `rebuild-index.ts` import directly from `../public-site/src/` (Eleventy rendering) — a
+  deliberate cross-package layout, not a published dependency; see that feature's `plan.md`.
 - `src/lib/` — id generation, HTTP response helper, local table-creation script
 - `src/local-server.ts` — maps plain HTTP requests to the handlers for local development
+
+## Publish pipeline (004-publish-pipeline-and)
+
+The owner marks recipes with a per-recipe toggle (`PATCH /recipes/{id}/publish-toggle`), then
+`POST /publish` or `POST /unpublish` starts a Step Functions execution (`infra/pipeline.ts`)
+against exactly the currently-toggled recipes — never a live reflection of the backoffice's
+current draft state. `GET /publish-status` is polled by the backoffice while a run is in
+progress, since a run can exceed API Gateway's 29-second synchronous limit. See
+[`contracts/publish-api.md`](../specs/004-publish-pipeline-and/contracts/publish-api.md) and
+[`contracts/public-site-index.md`](../specs/004-publish-pipeline-and/contracts/public-site-index.md).

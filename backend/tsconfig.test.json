@@ -1,8 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": ".",
+    // ".." (the repo root), not "." — 004-publish-pipeline-and's render-recipe.ts imports
+    // ../../../public-site/src/* (plan.md's deliberate cross-package layout; public-site/ is
+    // not a published package, just a sibling source tree), which otherwise falls outside
+    // backend's own rootDir.
+    "rootDir": "..",
     "noEmit": true
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "../public-site/src"]
 }

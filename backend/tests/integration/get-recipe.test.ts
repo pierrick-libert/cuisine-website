@@ -30,4 +30,15 @@ describe('GET /recipes/{id} (US1)', () => {
     expect(en).not.toHaveProperty('PK');
     expect(en).not.toHaveProperty('SK');
   });
+
+  it('includes selectedForNextPublish and publishStatus (004, FR-008)', async () => {
+    const created = await createHandler({ body: JSON.stringify({ locale: 'en', name: 'Publish Fields' }) } as unknown as APIGatewayProxyEventV2);
+    const { recipeId } = parseBody<{ recipeId: string }>(created);
+
+    const result = await getHandler({ pathParameters: { id: recipeId } } as unknown as APIGatewayProxyEventV2);
+    const recipe = parseBody<{ selectedForNextPublish: boolean; publishStatus: string }>(result);
+
+    expect(recipe.selectedForNextPublish).toBe(false);
+    expect(recipe.publishStatus).toBe('not_published');
+  });
 });

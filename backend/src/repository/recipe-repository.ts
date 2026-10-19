@@ -1,11 +1,11 @@
 import {
   QueryCommand,
-  ScanCommand,
   TransactWriteCommand,
   TransactWriteCommandInput,
 } from '@aws-sdk/lib-dynamodb';
 import { docClient, TABLE_NAME } from './table-client.js';
 import { generateId } from '../lib/id.js';
+import { scanAllItems } from '../lib/dynamo-scan.js';
 import { findOrCreateCategory, getCategoryById } from './category-repository.js';
 import { ValidationError } from '../domain/errors.js';
 import { validateIngredientLine } from '../domain/ingredient.js';
@@ -97,6 +97,24 @@ function stripKeys<T extends object>(item: T): Omit<T, 'PK' | 'SK'> {
   return rest;
 }
 
+/**
+ * Defaults `selectedForNextPublish`/`publishStatus` for a META item written before
+ * 004-publish-pipeline-and existed (001-003's recipes have neither field at all).
+ *
+ * @remarks
+ * Without this, a pre-004 recipe's `publishStatus` reads back `undefined`: the backoffice shows
+ * a blank status label, `PublishToggle` becomes an uncontrolled-to-controlled checkbox, and
+ * writing `undefined` back through `publish-repository.ts` (whose marshaller strips `undefined`
+ * values) can throw a `ValidationException` deep inside an unrelated catch block.
+ */
+function withPublishDefaults(meta: RecipeMeta): RecipeMeta {
+  return {
+    ...meta,
+    selectedForNextPublish: meta.selectedForNextPublish ?? false,
+    publishStatus: meta.publishStatus ?? 'not_published',
+  };
+}
+
 /** Combines a META item with its LOCALE items into the `GET /recipes/\{id\}` response shape. */
 function assembleRecipe(
   metaItem: RecipeMeta & { PK?: string; SK?: string },
@@ -108,7 +126,7 @@ function assembleRecipe(
     const locale = item.SK.replace('LOCALE#', '');
     locales[locale] = stripKeys(item) as RecipeLocaleContent;
   }
-  return { ...(stripKeys(metaItem) as RecipeMeta), categoryName, locales };
+  return { ...withPublishDefaults(stripKeys(metaItem) as RecipeMeta), categoryName, locales };
 }
 
 /**
@@ -136,6 +154,9 @@ export async function createRecipe(input: RecipeInput): Promise<RecipeWithLocale
     stepsOrder,
     createdAt: now,
     updatedAt: now,
+    // 004-publish-pipeline-and: every recipe starts untoggled and unpublished.
+    selectedForNextPublish: false,
+    publishStatus: 'not_published',
   };
 
   const transactItems: TransactWriteCommandInput['TransactItems'] = [
@@ -221,6 +242,10 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
     stepsOrder,
     createdAt: existing.createdAt,
     updatedAt: new Date().toISOString(),
+    // 004-publish-pipeline-and: a draft edit never touches publish state (US3 — the public site
+    // must not drift ahead of the last actual publish run just because the draft changed).
+    selectedForNextPublish: existing.selectedForNextPublish,
+    publishStatus: existing.publishStatus,
   };
 
   const transactItems: TransactWriteCommandInput['TransactItems'] = [
@@ -236,12 +261,19 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
 /**
  * Deletes a recipe and all of its locale content (User Story 2, FR-013).
  *
+ * @remarks
+ * Refuses to delete a recipe that is currently `'live'`, `'publishing'`, or `'unpublishing'`
+ * (Important 14 from code review) — deleting one's draft content doesn't remove its already-
+ * rendered public page or published-snapshot record, which would otherwise become permanently
+ * public with no way left to toggle or unpublish it. The owner must unpublish first.
+ *
  * @param recipeId - The recipe's id.
- * @returns `true` if the recipe existed and was deleted; `false` if it did not exist.
+ * @returns `'deleted'`, `'not_found'`, or `'still_live'` (the recipe must be unpublished first).
  */
-export async function deleteRecipe(recipeId: string): Promise<boolean> {
+export async function deleteRecipe(recipeId: string): Promise<'deleted' | 'not_found' | 'still_live'> {
   const existing = await getRecipe(recipeId);
-  if (!existing) return false;
+  if (!existing) return 'not_found';
+  if (existing.publishStatus !== 'not_published') return 'still_live';
 
   const keysToDelete = [metaKey(recipeId), ...Object.keys(existing.locales).map((locale) => localeKey(recipeId, locale))];
   await docClient.send(
@@ -249,7 +281,7 @@ export async function deleteRecipe(recipeId: string): Promise<boolean> {
       TransactItems: keysToDelete.map((Key) => ({ Delete: { TableName: TABLE_NAME, Key } })),
     }),
   );
-  return true;
+  return 'deleted';
 }
 
 /**
@@ -263,8 +295,7 @@ export async function deleteRecipe(recipeId: string): Promise<boolean> {
  * @returns One summary row per recipe, with its name resolved from whichever locale is available.
  */
 export async function listRecipes(): Promise<RecipeSummary[]> {
-  const result = await docClient.send(new ScanCommand({ TableName: TABLE_NAME }));
-  const items = result.Items ?? [];
+  const items = await scanAllItems({ TableName: TABLE_NAME });
 
   const metaByRecipeId = new Map<string, RecipeMeta>();
   const firstLocaleByRecipeId = new Map<string, RecipeLocaleContent>();
@@ -285,5 +316,7 @@ export async function listRecipes(): Promise<RecipeSummary[]> {
     name: firstLocaleByRecipeId.get(recipeId)?.name ?? '',
     categoryId: meta.categoryId,
     tags: meta.tags,
+    selectedForNextPublish: meta.selectedForNextPublish ?? false,
+    publishStatus: meta.publishStatus ?? 'not_published',
   }));
 }
