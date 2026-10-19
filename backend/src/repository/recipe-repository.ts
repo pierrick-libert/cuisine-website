@@ -292,5 +292,7 @@ export async function listRecipes(): Promise<RecipeSummary[]> {
     name: firstLocaleByRecipeId.get(recipeId)?.name ?? '',
     categoryId: meta.categoryId,
     tags: meta.tags,
+    selectedForNextPublish: meta.selectedForNextPublish,
+    publishStatus: meta.publishStatus,
   }));
 }

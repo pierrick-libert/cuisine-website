@@ -111,6 +111,10 @@ export interface RecipeSummary {
   name: string;
   categoryId: string | null;
   tags: string[];
+  /** See {@link RecipeMeta.selectedForNextPublish} (004-publish-pipeline-and, FR-008). */
+  selectedForNextPublish: boolean;
+  /** See {@link RecipeMeta.publishStatus} (004-publish-pipeline-and, FR-008). */
+  publishStatus: PublishStatus;
 }
 
 // --- Request body shapes (POST/PUT /recipes) ---
