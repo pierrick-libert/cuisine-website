@@ -54,7 +54,9 @@ export function RecipeListPage() {
       getPublishStatus()
         .then((status) => {
           setPipelineStatus(status);
-          if (!status.running) refreshRecipes();
+          // Refresh throughout the run, not only once it finishes, so per-recipe
+          // "Publishing…"/"Unpublishing…" statuses (FR-008) are actually visible while in progress.
+          refreshRecipes();
         })
         .catch(() => {
           /* Keep polling on a transient failure rather than abandoning the in-progress run's display. */
@@ -71,6 +73,8 @@ export function RecipeListPage() {
       const result = action === 'publish' ? await startPublish() : await startUnpublish();
       if (result.status === 'started') {
         setPipelineStatus({ running: true, action, startedAt: new Date().toISOString(), lastResult: null });
+      } else {
+        setActionError(`No recipes are currently toggled on — nothing to ${action}.`);
       }
     } catch (err) {
       if (err instanceof PublishRequestError && err.status === 409) {
@@ -114,6 +118,16 @@ export function RecipeListPage() {
         </div>
       </div>
       {pipelineStatus?.running && <p>A {pipelineStatus.action} run is in progress…</p>}
+      {/* FR-010 requires a failed run to be clearly visible — not just a silent status revert. */}
+      {!pipelineStatus?.running && pipelineStatus?.lastResult === 'failed' && (
+        <p style={{ color: 'var(--color-danger)' }}>
+          The last {pipelineStatus.action} run failed. Recipes that didn't complete have been reverted to their
+          previous state; re-toggle and try again.
+        </p>
+      )}
+      {!pipelineStatus?.running && pipelineStatus?.lastResult === 'succeeded' && (
+        <p style={{ color: 'var(--color-text-muted)' }}>The last {pipelineStatus.action} run succeeded.</p>
+      )}
       {actionError && <p style={{ color: 'var(--color-danger)' }}>{actionError}</p>}
       {error && <p style={{ color: 'var(--color-danger)' }}>{error}</p>}
       {!recipes && !error && <p>Loading…</p>}
