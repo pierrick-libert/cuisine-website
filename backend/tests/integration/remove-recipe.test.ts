@@ -10,7 +10,7 @@ vi.mock('@aws-sdk/client-s3', () => ({
   },
 }));
 
-const { removeRecipe } = await import('../../src/pipeline/remove-recipe.js');
+const { removeRecipe, handler } = await import('../../src/pipeline/remove-recipe.js');
 const { createRecipe, updateRecipe, getRecipe } = await import('../../src/repository/recipe-repository.js');
 const {
   getPublishedSnapshotsForRecipe,
@@ -93,5 +93,28 @@ describe('removeRecipe (004, User Story 2)', () => {
     const after = await getRecipe(recipe.recipeId);
     expect(after?.publishStatus).toBe('live');
     expect(after?.selectedForNextPublish).toBe(false);
+  });
+
+  describe('handler (Step Functions Map-state event shape)', () => {
+    it('accepts { recipeId } as its event, not a bare string (Critical: ASL event shape)', async () => {
+      const recipe = await createRecipe({ locale: 'en', name: 'Handler Shape Unpublish' });
+      await setPublishStatus(recipe.recipeId, 'live');
+      await putPublishedSnapshot({
+        recipeId: recipe.recipeId,
+        locale: 'en',
+        title: 'Handler Shape Unpublish',
+        slug: 'handler-shape-unpublish',
+        categoryId: null,
+        renderedAt: '2026-10-19T00:00:00Z',
+      });
+      await setSelectedForNextPublish(recipe.recipeId, true);
+      sendMock.mockClear();
+
+      await handler({ recipeId: recipe.recipeId });
+
+      expect(sendMock).toHaveBeenCalledTimes(1);
+      const updated = await getRecipe(recipe.recipeId);
+      expect(updated?.publishStatus).toBe('not_published');
+    });
   });
 });

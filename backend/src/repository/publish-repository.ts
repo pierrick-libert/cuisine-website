@@ -77,6 +77,14 @@ export async function putPublishedSnapshot(snapshot: PublishedSnapshot): Promise
   );
 }
 
+/** Gets one recipe's published-snapshot record for one locale, or `null` if it has none. */
+export async function getPublishedSnapshot(recipeId: string, locale: string): Promise<PublishedSnapshot | null> {
+  const result = await docClient.send(new GetCommand({ TableName: TABLE_NAME, Key: publishedKey(recipeId, locale) }));
+  if (!result.Item) return null;
+  const { PK: _pk, SK: _sk, ...rest } = result.Item as PublishedSnapshot & { PK: string; SK: string };
+  return rest;
+}
+
 /** Deletes one locale's published-snapshot record (used when a recipe is unpublished). */
 export async function deletePublishedSnapshot(recipeId: string, locale: string): Promise<void> {
   await docClient.send(

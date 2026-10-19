@@ -1,7 +1,12 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getRecipe } from '../repository/recipe-repository.js';
-import { putPublishedSnapshot, setPublishStatus, setSelectedForNextPublish } from '../repository/publish-repository.js';
-import { slugify } from '../lib/slug.js';
+import {
+  getPublishedSnapshot,
+  putPublishedSnapshot,
+  setPublishStatus,
+  setSelectedForNextPublish,
+} from '../repository/publish-repository.js';
+import { recipeSlug } from '../lib/slug.js';
 import { renderRecipePage } from '../../../public-site/src/render.js';
 import { renderRichText } from '../../../public-site/src/render-rich-text.js';
 import type { IngredientLine, RecipeLocaleContent } from '../domain/types.js';
@@ -35,7 +40,7 @@ export async function renderRecipe(recipeId: string): Promise<void> {
 
   try {
     for (const [locale, content] of Object.entries(recipe.locales) as Array<[string, RecipeLocaleContent]>) {
-      const slug = slugify(content.name);
+      const slug = recipeSlug(content.name, recipeId);
       const stepsHtml = recipe.stepsOrder.map((stepId) => renderRichText(content.steps[stepId] ?? { type: 'doc', content: [] }));
       const ingredientGroups = recipe.ingredientGroups.map((group) => ({
         name: content.groupNames[group.groupId] ?? null,
@@ -51,6 +56,16 @@ export async function renderRecipe(recipeId: string): Promise<void> {
         ingredientGroups,
         stepsHtml,
       });
+
+      // A rename changes the slug — the previous page (keyed by this recipe's own prior
+      // snapshot, not by name) would otherwise stay orphaned and publicly reachable forever
+      // (US2's "no longer reachable" guarantee, applied to a renamed-then-republished recipe).
+      const previousSnapshot = await getPublishedSnapshot(recipeId, locale);
+      if (previousSnapshot && previousSnapshot.slug !== slug) {
+        await s3.send(
+          new DeleteObjectCommand({ Bucket: PUBLIC_BUCKET_NAME, Key: `${locale}/recipes/${previousSnapshot.slug}.html` }),
+        );
+      }
 
       await s3.send(
         new PutObjectCommand({
@@ -78,4 +93,13 @@ export async function renderRecipe(recipeId: string): Promise<void> {
   } finally {
     await setSelectedForNextPublish(recipeId, false);
   }
+}
+
+/**
+ * The actual Lambda entrypoint (infra/pipeline.ts's `RenderRecipeFunction`) — Step Functions'
+ * Map state invokes this with `{ recipeId }` (its `ItemSelector`/`Payload` shape), never a bare
+ * string, so this must destructure before delegating to {@link renderRecipe}.
+ */
+export async function handler(event: { recipeId: string }): Promise<void> {
+  return renderRecipe(event.recipeId);
 }

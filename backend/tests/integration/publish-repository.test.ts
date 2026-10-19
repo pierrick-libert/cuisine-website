@@ -4,6 +4,7 @@ import {
   deletePipelineStatus,
   deletePublishedSnapshot,
   getPipelineStatus,
+  getPublishedSnapshot,
   getPublishedSnapshotsForRecipe,
   listPublishedSnapshots,
   putPublishedSnapshot,
@@ -66,6 +67,13 @@ describe('publish-repository (004)', () => {
 
       const all = await listPublishedSnapshots();
       expect(all.find((s) => s.recipeId === snapshot.recipeId && s.locale === snapshot.locale)).toBeUndefined();
+    });
+
+    it('gets one locale snapshot for a recipe, or null if none exists', async () => {
+      await putPublishedSnapshot(snapshot);
+
+      expect(await getPublishedSnapshot(snapshot.recipeId, snapshot.locale)).toEqual(snapshot);
+      expect(await getPublishedSnapshot(snapshot.recipeId, 'de')).toBeNull();
     });
 
     it('gets only the snapshots for one recipe, across every locale it was published in', async () => {

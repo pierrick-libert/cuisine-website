@@ -22,7 +22,9 @@ const environment = { TABLE_NAME: table.name, PUBLIC_BUCKET_NAME: publicSiteBuck
 
 const renderRecipeFn = new sst.aws.Function('RenderRecipeFunction', {
   name: 'CLP-RenderRecipe',
-  handler: 'backend/src/pipeline/render-recipe.renderRecipe',
+  // `.handler`, not `.renderRecipe` directly — the Map state's event is `{ recipeId }`, which
+  // the handler wrapper destructures before calling the pure, string-argument renderRecipe().
+  handler: 'backend/src/pipeline/render-recipe.handler',
   runtime,
   environment,
   link: [table, publicSiteBucket],
@@ -35,7 +37,8 @@ const renderRecipeFn = new sst.aws.Function('RenderRecipeFunction', {
 
 const removeRecipeFn = new sst.aws.Function('RemoveRecipeFunction', {
   name: 'CLP-RemoveRecipe',
-  handler: 'backend/src/pipeline/remove-recipe.removeRecipe',
+  // `.handler`, not `.removeRecipe` directly — same ASL event-shape reasoning as RenderRecipeFunction above.
+  handler: 'backend/src/pipeline/remove-recipe.handler',
   runtime,
   environment,
   link: [table, publicSiteBucket],

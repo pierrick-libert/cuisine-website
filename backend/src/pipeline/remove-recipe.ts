@@ -52,3 +52,12 @@ export async function removeRecipe(recipeId: string): Promise<void> {
     await setSelectedForNextPublish(recipeId, false);
   }
 }
+
+/**
+ * The actual Lambda entrypoint (infra/pipeline.ts's `RemoveRecipeFunction`) — Step Functions'
+ * Map state invokes this with `{ recipeId }` (its `ItemSelector`/`Payload` shape), never a bare
+ * string, so this must destructure before delegating to {@link removeRecipe}.
+ */
+export async function handler(event: { recipeId: string }): Promise<void> {
+  return removeRecipe(event.recipeId);
+}
