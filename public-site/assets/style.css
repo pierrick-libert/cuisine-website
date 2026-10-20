@@ -40,6 +40,24 @@ button, input { font-family: inherit; }
 }
 .topbar a { color: inherit; }
 
+/* Locale switcher (EN/FR pills) */
+.locale-switcher { display: flex; gap: 6px; }
+.locale-pill {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border: 1px solid oklch(87% 0.014 145);
+  color: oklch(40% 0.006 145);
+}
+.locale-pill.active { background: var(--accent, #5C7A52); color: oklch(99% 0.006 145); border-color: var(--accent, #5C7A52); }
+.locale-pill.disabled { opacity: 0.4; cursor: default; }
+
+/* Back link (category shell → home) */
+.back-link { display: block; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+
 /* Category badge */
 .badge {
   display: inline-block;
