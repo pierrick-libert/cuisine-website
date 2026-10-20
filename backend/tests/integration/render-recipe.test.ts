@@ -166,6 +166,31 @@ describe('renderRecipe (004, User Story 1)', () => {
     expect(after?.publishStatus).toBe('live'); // reverted to its prior (already-live) state.
   });
 
+  it('builds structured ingredient data (quantity/unit/name/approxEquivalent) for the servings-scaling script, not a flattened string (005 US3)', async () => {
+    const recipe = await createRecipe({
+      locale: 'en',
+      name: 'Scalable Recipe',
+      baseServings: 6,
+      ingredientGroups: [
+        {
+          name: 'Dough',
+          lines: [{ quantity: 250, unit: 'g', name: 'flour', approxEquivalent: { quantity: 16, unit: 'tbsp' } }],
+        },
+      ],
+      steps: [],
+    });
+    await setSelectedForNextPublish(recipe.recipeId, true);
+    sendMock.mockClear();
+
+    await renderRecipe(recipe.recipeId);
+
+    const { input } = sendMock.mock.calls[0]![0] as { input: { Body: string } };
+    expect(input.Body).toContain('servings-stepper');
+    expect(input.Body).toContain('&quot;quantity&quot;:250');
+    expect(input.Body).toContain('&quot;name&quot;:&quot;flour&quot;');
+    expect(input.Body).toContain('&quot;approxEquivalent&quot;');
+  });
+
   describe('handler (Step Functions Map-state event shape)', () => {
     it('accepts { recipeId } as its event, not a bare string (Critical: ASL event shape)', async () => {
       const recipe = await createRecipe({ locale: 'en', name: 'Handler Shape Recipe' });

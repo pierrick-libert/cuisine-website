@@ -12,14 +12,10 @@ import { SUPPORTED_LOCALES } from '../lib/locales.js';
 import { getCategoryById } from '../repository/category-repository.js';
 import { renderRecipePage, type LocaleLink } from '../../../public-site/src/render.js';
 import { renderRichText } from '../../../public-site/src/render-rich-text.js';
-import type { IngredientLine, RecipeLocaleContent } from '../domain/types.js';
+import type { RecipeLocaleContent } from '../domain/types.js';
 
 const s3 = new S3Client({});
 const PUBLIC_BUCKET_NAME = process.env.PUBLIC_BUCKET_NAME ?? 'clp-cuisine-website-public';
-
-function formatIngredientLine(line: IngredientLine, name: string): string {
-  return line.unit ? `${line.quantity} ${line.unit} ${name}` : `${line.quantity} ${name}`;
-}
 
 /**
  * Renders and publishes one recipe, in every locale it has content for (Map-state task behind
@@ -68,10 +64,16 @@ export async function renderRecipe(recipeId: string): Promise<void> {
     for (const [locale, content] of Object.entries(recipe.locales) as Array<[string, RecipeLocaleContent]>) {
       const slug = slugByLocale.get(locale)!;
       const stepsHtml = recipe.stepsOrder.map((stepId) => renderRichText(content.steps[stepId] ?? { type: 'doc', content: [] }));
+      // Structured, not a flattened string — the client-side servings-scaling script
+      // (public-site/assets/recipe.js) recomputes the displayed quantity/approximate equivalent
+      // itself from this data (005-recipe-media-details User Story 3).
       const ingredientGroups = recipe.ingredientGroups.map((group) => ({
         name: content.groupNames[group.groupId] ?? null,
         lines: group.lines.map((line) => ({
-          text: formatIngredientLine(line, content.ingredientNames[line.lineId] ?? ''),
+          quantity: line.quantity,
+          unit: line.unit,
+          name: content.ingredientNames[line.lineId] ?? '',
+          approxEquivalent: line.approxEquivalent,
         })),
       }));
 

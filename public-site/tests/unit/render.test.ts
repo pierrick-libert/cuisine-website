@@ -10,7 +10,7 @@ describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy in
       locale: 'en',
       title: "Grandma's Apple Tart",
       description: 'A classic.',
-      ingredientGroups: [{ name: null, lines: [{ text: '250g flour' }] }],
+      ingredientGroups: [{ name: null, lines: [{ quantity: 250, unit: 'g', name: 'flour', approxEquivalent: null }] }],
       stepsHtml: ['<p>Mix the flour.</p>'],
       category: null,
       locales: [],
@@ -23,7 +23,7 @@ describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy in
     expect(html).toContain('<html lang="en">');
     // Nunjucks auto-escapes interpolated values by default — the apostrophe becomes an entity.
     expect(html).toContain('Grandma&#39;s Apple Tart');
-    expect(html).toContain('250g flour');
+    expect(html).toContain('250 g flour');
     expect(html).toContain('<p>Mix the flour.</p>');
   });
 
@@ -162,6 +162,52 @@ describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy in
     });
 
     expect(html).not.toContain('<img');
+  });
+
+  it('renders static ingredient text with no stepper when baseServings is null (005 FR-007)', async () => {
+    const html = await renderRecipePage({
+      locale: 'en',
+      title: 'Apple Tart',
+      description: '',
+      ingredientGroups: [{ name: null, lines: [{ quantity: 250, unit: 'g', name: 'flour', approxEquivalent: { quantity: 16, unit: 'tbsp' } }] }],
+      stepsHtml: [],
+      category: null,
+      locales: [],
+      prepMinutes: null,
+      cookMinutes: null,
+      baseServings: null,
+      coverImageUrl: null,
+    });
+
+    expect(html).toContain('250 g flour');
+    expect(html).toContain('≈ 16 tbsp');
+    expect(html).not.toContain('servings-stepper');
+    expect(html).not.toContain('recipeDetail(');
+  });
+
+  it('embeds structured ingredient data and a servings stepper when baseServings is set (005 FR-006)', async () => {
+    const html = await renderRecipePage({
+      locale: 'en',
+      title: 'Apple Tart',
+      description: '',
+      ingredientGroups: [{ name: 'For the dough', lines: [{ quantity: 250, unit: 'g', name: 'flour', approxEquivalent: { quantity: 16, unit: 'tbsp' } }] }],
+      stepsHtml: [],
+      category: null,
+      locales: [],
+      prepMinutes: null,
+      cookMinutes: null,
+      baseServings: 6,
+      coverImageUrl: null,
+    });
+
+    expect(html).toContain('servings-stepper');
+    expect(html).toContain('recipeDetail(');
+    // The raw structured data (quantity/unit/name/approxEquivalent) must be present for the
+    // client-side script to read and scale — not a pre-flattened, unscalable string.
+    expect(html).toContain('&quot;quantity&quot;:250');
+    expect(html).toContain('&quot;name&quot;:&quot;flour&quot;');
+    expect(html).toContain('&quot;approxEquivalent&quot;');
+    expect(html).toContain('For the dough');
   });
 });
 

@@ -28,11 +28,24 @@ export interface LocaleLink {
   href: string | null;
 }
 
+/**
+ * One structured ingredient line (005-recipe-media-details) — replaces 004's pre-flattened
+ * `{ text: string }` shape so the client-side servings-scaling script
+ * (`public-site/assets/recipe.js`) can recompute the displayed quantity/approximate-equivalent
+ * itself, rather than every possible servings count needing its own server-rendered string.
+ */
+export interface RecipeIngredientLine {
+  quantity: number;
+  unit: string | null;
+  name: string;
+  approxEquivalent: { quantity: number; unit: string } | null;
+}
+
 export interface RecipeRenderData {
   locale: string;
   title: string;
   description: string;
-  ingredientGroups: Array<{ name: string | null; lines: Array<{ text: string }> }>;
+  ingredientGroups: Array<{ name: string | null; lines: RecipeIngredientLine[] }>;
   /** Each step's rich text, already rendered to HTML by `render-rich-text.ts`. */
   stepsHtml: string[];
   category: { name: string; slug: string } | null;
