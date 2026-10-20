@@ -58,6 +58,7 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
       slug: 'grandmas-apple-tart',
       categoryId: category.categoryId,
       renderedAt: '2026-10-19T00:00:00Z',
+      coverImageUrl: null,
     });
 
     await rebuildIndex();
@@ -72,7 +73,28 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
       title: "Grandma's Apple Tart",
       categoryId: category.categoryId,
       categorySlug: 'desserts',
+      coverImageUrl: null,
     });
+  });
+
+  it('includes each recipe\'s coverImageUrl from its published snapshot (005-recipe-media-details FR-004)', async () => {
+    await putPublishedSnapshot({
+      recipeId: 'r-index-cover-1',
+      locale: 'en',
+      title: 'Cover Image Recipe',
+      slug: 'cover-image-recipe',
+      categoryId: null,
+      renderedAt: '2026-10-19T00:00:00Z',
+      coverImageUrl: 'https://clp-cuisine-website-images.s3.eu-central-1.amazonaws.com/a.jpg',
+    });
+
+    await rebuildIndex();
+
+    const calls = sendMock.mock.calls.map((call) => (call[0] as { input: Record<string, unknown> }).input);
+    const enIndexCall = calls.find((c) => c.Key === 'en/browse-index.json');
+    const body = JSON.parse(enIndexCall!.Body as string) as { recipes: Array<Record<string, unknown>> };
+    const entry = body.recipes.find((r) => r.recipeId === 'r-index-cover-1');
+    expect(entry?.coverImageUrl).toBe('https://clp-cuisine-website-images.s3.eu-central-1.amazonaws.com/a.jpg');
   });
 
   it('never reflects a live draft edit to a recipe not re-rendered this run (FR-013)', async () => {
@@ -84,6 +106,7 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
       slug: 'old-published-title',
       categoryId: null,
       renderedAt: '2026-10-19T00:00:00Z',
+      coverImageUrl: null,
     });
     // Edit the draft WITHOUT republishing — the snapshot above is deliberately left stale.
     await updateRecipe(recipe.recipeId, { locale: 'en', name: 'Brand New Unpublished Name' });
@@ -107,6 +130,7 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
       slug: 'shell-recipe',
       categoryId: category.categoryId,
       renderedAt: '2026-10-19T00:00:00Z',
+      coverImageUrl: null,
     });
 
     await rebuildIndex();
@@ -143,6 +167,7 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
       slug: 'home-page-recipe',
       categoryId: category.categoryId,
       renderedAt: '2026-10-19T00:00:00Z',
+      coverImageUrl: null,
     });
 
     await rebuildIndex();
@@ -164,6 +189,7 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
       slug: 'keeps-locale-live-recipe',
       categoryId: liveCategory.categoryId,
       renderedAt: '2026-10-19T00:00:00Z',
+      coverImageUrl: null,
     });
     // Simulate the empty category having just lost its only recipe (unpublished).
     await putPublishedSnapshot({
@@ -173,6 +199,7 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
       slug: 'now-gone',
       categoryId: emptyCategory.categoryId,
       renderedAt: '2026-10-19T00:00:00Z',
+      coverImageUrl: null,
     });
     await deletePublishedSnapshot('r-now-gone', 'en');
 

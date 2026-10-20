@@ -51,6 +51,7 @@ describe('renderRecipe (004, User Story 1)', () => {
       slug: expectedSlug,
       categoryId: null,
       renderedAt: expect.any(String),
+      coverImageUrl: null,
     });
 
     const updated = await getRecipe(recipe.recipeId);

@@ -14,6 +14,10 @@ describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy in
       stepsHtml: ['<p>Mix the flour.</p>'],
       category: null,
       locales: [],
+      prepMinutes: null,
+      cookMinutes: null,
+      baseServings: null,
+      coverImageUrl: null,
     });
 
     expect(html).toContain('<html lang="en">');
@@ -32,6 +36,10 @@ describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy in
       stepsHtml: [],
       category: null,
       locales: [],
+      prepMinutes: null,
+      cookMinutes: null,
+      baseServings: null,
+      coverImageUrl: null,
     });
 
     expect(html).not.toContain('<p></p>');
@@ -46,6 +54,10 @@ describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy in
       stepsHtml: [],
       category: { name: 'Desserts', slug: 'desserts' },
       locales: [],
+      prepMinutes: null,
+      cookMinutes: null,
+      baseServings: null,
+      coverImageUrl: null,
     });
 
     expect(html).toContain('Desserts');
@@ -64,11 +76,92 @@ describe('renderRecipePage (004, research.md "Rendering recipes with Eleventy in
         { locale: 'en', label: 'EN', href: '/en/recipes/apple-tart-abc123.html' },
         { locale: 'fr', label: 'FR', href: null },
       ],
+      prepMinutes: null,
+      cookMinutes: null,
+      baseServings: null,
+      coverImageUrl: null,
     });
 
     expect(html).toContain('/en/recipes/apple-tart-abc123.html');
     expect(html).toContain('EN');
     expect(html).toContain('FR');
+  });
+
+  it('shows prep/cook time and servings next to the category badge, when set', async () => {
+    const html = await renderRecipePage({
+      locale: 'en',
+      title: 'Apple Tart',
+      description: '',
+      ingredientGroups: [],
+      stepsHtml: [],
+      category: null,
+      locales: [],
+      prepMinutes: 25,
+      cookMinutes: 45,
+      baseServings: 6,
+      coverImageUrl: null,
+    });
+
+    expect(html).toContain('Prep 25 min');
+    expect(html).toContain('Bake 45 min');
+    expect(html).toContain('Serves 6');
+  });
+
+  it('omits exactly the time/servings fields that are unset, not a blank or zero', async () => {
+    const html = await renderRecipePage({
+      locale: 'en',
+      title: 'Apple Tart',
+      description: '',
+      ingredientGroups: [],
+      stepsHtml: [],
+      category: null,
+      locales: [],
+      prepMinutes: 25,
+      cookMinutes: null,
+      baseServings: null,
+      coverImageUrl: null,
+    });
+
+    expect(html).toContain('Prep 25 min');
+    expect(html).not.toContain('Bake');
+    expect(html).not.toContain('Serves');
+  });
+
+  it('shows a hero image when coverImageUrl is set', async () => {
+    const html = await renderRecipePage({
+      locale: 'en',
+      title: 'Apple Tart',
+      description: '',
+      ingredientGroups: [],
+      stepsHtml: [],
+      category: null,
+      locales: [],
+      prepMinutes: null,
+      cookMinutes: null,
+      baseServings: null,
+      coverImageUrl: 'https://clp-cuisine-website-images.s3.eu-central-1.amazonaws.com/a.jpg',
+    });
+
+    expect(html).toContain('<img');
+    expect(html).toContain('https://clp-cuisine-website-images.s3.eu-central-1.amazonaws.com/a.jpg');
+  });
+
+  it('renders no image element at all when coverImageUrl is null', async () => {
+    const html = await renderRecipePage({
+      locale: 'en',
+      title: 'Apple Tart',
+      description: '',
+      ingredientGroups: [],
+      stepsHtml: [],
+      category: null,
+      locales: [],
+      prepMinutes: null,
+      cookMinutes: null,
+      baseServings: null,
+      coverImageUrl: null,
+    });
+
+    expect(html).not.toContain('<img');
   });
 });
 
@@ -97,6 +190,10 @@ describe('TEMPLATES_DIR resolution in a bundled Lambda (Critical: template bundl
         stepsHtml: [],
         category: null,
         locales: [],
+        prepMinutes: null,
+        cookMinutes: null,
+        baseServings: null,
+        coverImageUrl: null,
       });
       expect(html).toBe('FAKE TASK ROOT TEMPLATE: Task Root Recipe');
     } finally {

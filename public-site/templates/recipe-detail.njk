@@ -16,10 +16,26 @@
     </div>
 
     <div class="hero">
-      {% if recipe.category %}<a class="badge" href="/{{ recipe.locale }}/categories/{{ recipe.category.slug }}.html">{{ recipe.category.name }}</a>{% endif %}
+      <div class="hero-meta">
+        {% if recipe.category %}<a class="badge" href="/{{ recipe.locale }}/categories/{{ recipe.category.slug }}.html">{{ recipe.category.name }}</a>{% endif %}
+        {% if recipe.prepMinutes or recipe.cookMinutes %}
+        <span class="meta-item">
+          {% if recipe.prepMinutes %}Prep {{ recipe.prepMinutes }} min{% endif %}
+          {% if recipe.prepMinutes and recipe.cookMinutes %}&nbsp;·&nbsp;{% endif %}
+          {% if recipe.cookMinutes %}Bake {{ recipe.cookMinutes }} min{% endif %}
+        </span>
+        {% endif %}
+        {% if recipe.baseServings %}<span class="meta-item">Serves {{ recipe.baseServings }}</span>{% endif %}
+      </div>
       <h1>{{ recipe.title }}</h1>
       {% if recipe.description %}<p class="description">{{ recipe.description }}</p>{% endif %}
     </div>
+
+    {% if recipe.coverImageUrl %}
+    <div class="hero-image">
+      <img src="{{ recipe.coverImageUrl }}" alt="{{ recipe.title }}">
+    </div>
+    {% endif %}
 
     <div class="recipe-body">
       {% if recipe.ingredientGroups.length %}

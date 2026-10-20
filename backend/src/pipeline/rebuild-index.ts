@@ -35,6 +35,8 @@ interface BrowseIndexEntry {
   title: string;
   categoryId: string | null;
   categorySlug: string | null;
+  /** From the published snapshot, never live draft data (005-recipe-media-details FR-004). */
+  coverImageUrl: string | null;
 }
 
 /**
@@ -129,6 +131,7 @@ export async function rebuildIndex(): Promise<void> {
         title: snapshot.title,
         categoryId: snapshot.categoryId,
         categorySlug: await resolveCategorySlug(snapshot.categoryId, categorySlugCache),
+        coverImageUrl: snapshot.coverImageUrl,
       });
       if (snapshot.categoryId) liveLocaleCategoryPairs.add(`${locale}::${snapshot.categoryId}`);
     }

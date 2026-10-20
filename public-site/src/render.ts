@@ -37,6 +37,14 @@ export interface RecipeRenderData {
   stepsHtml: string[];
   category: { name: string; slug: string } | null;
   locales: LocaleLink[];
+  /** Preparation time in minutes, `null` when not recorded (005-recipe-media-details FR-001). */
+  prepMinutes: number | null;
+  /** Cook/bake time in minutes, `null` when not recorded (005-recipe-media-details FR-001). */
+  cookMinutes: number | null;
+  /** `null` means no servings control is offered (005-recipe-media-details FR-006, FR-007). */
+  baseServings: number | null;
+  /** `null` renders no hero image at all (005-recipe-media-details FR-004, FR-005). */
+  coverImageUrl: string | null;
 }
 
 /**
