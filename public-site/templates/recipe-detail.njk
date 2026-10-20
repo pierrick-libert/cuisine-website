@@ -7,6 +7,9 @@
   <title>{{ recipe.title }} — Pierrick's Sunday Kitchen</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;0,700;1,400&family=Karla:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="/assets/style.css">
+  {% if recipe.baseServings %}
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+  {% endif %}
 </head>
 <body>
   <div class="page">
@@ -41,12 +44,43 @@
       {% if recipe.ingredientGroups.length %}
       <div class="ingredients-card">
         <h2>Ingredients</h2>
+        {% if recipe.baseServings %}
+        <div x-data="recipeDetail({{ recipe.ingredientGroups | dump }}, {{ recipe.baseServings }})">
+          <div class="servings-stepper">
+            <span class="meta-item">Servings</span>
+            <button type="button" aria-label="Decrease servings" @click="dec()">&minus;</button>
+            <span x-text="servings"></span>
+            <button type="button" aria-label="Increase servings" @click="inc()">+</button>
+          </div>
+          <template x-for="group in groups" :key="group.name">
+            <div>
+              <div class="group-name" x-show="group.name" x-text="group.name"></div>
+              <ul>
+                <template x-for="line in group.lines" :key="line.name">
+                  <li>
+                    <span x-text="scaledQuantity(line) + (line.unit ? ' ' + line.unit : '') + ' ' + line.name"></span>
+                    <template x-if="line.approxEquivalent">
+                      <div class="approx" x-text="'≈ ' + scaledApprox(line) + ' ' + line.approxEquivalent.unit"></div>
+                    </template>
+                  </li>
+                </template>
+              </ul>
+            </div>
+          </template>
+        </div>
+        {% else %}
         {% for group in recipe.ingredientGroups %}
           {% if group.name %}<div class="group-name">{{ group.name }}</div>{% endif %}
           <ul>
-            {% for line in group.lines %}<li>{{ line.text }}</li>{% endfor %}
+            {% for line in group.lines %}
+              <li>
+                {{ line.quantity }}{% if line.unit %} {{ line.unit }}{% endif %} {{ line.name }}
+                {% if line.approxEquivalent %}<div class="approx">≈ {{ line.approxEquivalent.quantity }} {{ line.approxEquivalent.unit }}</div>{% endif %}
+              </li>
+            {% endfor %}
           </ul>
         {% endfor %}
+        {% endif %}
       </div>
       {% endif %}
 
@@ -58,5 +92,8 @@
       </div>
     </div>
   </div>
+  {% if recipe.baseServings %}
+  <script src="/assets/recipe.js"></script>
+  {% endif %}
 </body>
 </html>

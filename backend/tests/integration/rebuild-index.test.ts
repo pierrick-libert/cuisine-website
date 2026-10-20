@@ -49,6 +49,16 @@ describe('rebuildIndex (004, FR-013/SC-008)', () => {
     expect(styleCall!.Body as string).toContain('.recipe-card');
   });
 
+  it('uploads recipe.js to the public bucket (005-recipe-media-details US3)', async () => {
+    await rebuildIndex();
+
+    const calls = s3Calls();
+    const assetCall = calls.find((c) => c.Key === 'assets/recipe.js');
+    expect(assetCall).toBeDefined();
+    expect(assetCall!.ContentType).toBe('application/javascript');
+    expect(assetCall!.Body as string).toContain('function recipeDetail');
+  });
+
   it('writes a browse-index.json per locale, built only from published snapshots', async () => {
     const category = await findOrCreateCategory('Desserts');
     await putPublishedSnapshot({

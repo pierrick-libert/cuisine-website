@@ -121,6 +121,24 @@ button, input { font-family: inherit; }
   border-bottom: 1px solid oklch(93% 0.012 145);
   font-size: 14px;
 }
+.ingredients-card .approx {
+  font-size: 11.5px;
+  color: oklch(55% 0.006 145);
+  font-style: italic;
+}
+
+/* Servings stepper */
+.servings-stepper { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.servings-stepper button {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid oklch(87% 0.014 145);
+  background: oklch(94% 0.014 145);
+  font-size: 15px;
+  color: oklch(22% 0.006 145);
+}
+.servings-stepper span:not(.meta-item) { font-weight: 700; font-size: 14px; width: 20px; text-align: center; }
 
 .steps { flex: 1; min-width: 280px; }
 .steps h2 { font-size: 20px; margin-bottom: 20px; }
