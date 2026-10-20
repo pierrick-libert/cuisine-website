@@ -1,3 +1,4 @@
+{% import "locale-switcher.njk" as switcher %}
 <!doctype html>
 <html lang="{{ recipe.locale }}">
 <head>
@@ -11,9 +12,11 @@
   <div class="page">
     <div class="topbar">
       <a class="brand" href="/{{ recipe.locale }}/index.html">Pierrick's Sunday Kitchen</a>
+      {{ switcher.localeSwitcher(recipe.locales, recipe.locale) }}
     </div>
 
     <div class="hero">
+      {% if recipe.category %}<a class="badge" href="/{{ recipe.locale }}/categories/{{ recipe.category.slug }}.html">{{ recipe.category.name }}</a>{% endif %}
       <h1>{{ recipe.title }}</h1>
       {% if recipe.description %}<p class="description">{{ recipe.description }}</p>{% endif %}
     </div>

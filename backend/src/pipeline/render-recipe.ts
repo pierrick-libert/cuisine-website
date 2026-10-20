@@ -7,8 +7,10 @@ import {
   setPublishStatus,
   setSelectedForNextPublish,
 } from '../repository/publish-repository.js';
-import { recipeSlug } from '../lib/slug.js';
-import { renderRecipePage } from '../../../public-site/src/render.js';
+import { recipeSlug, slugify } from '../lib/slug.js';
+import { SUPPORTED_LOCALES } from '../lib/locales.js';
+import { getCategoryById } from '../repository/category-repository.js';
+import { renderRecipePage, type LocaleLink } from '../../../public-site/src/render.js';
 import { renderRichText } from '../../../public-site/src/render-rich-text.js';
 import type { IngredientLine, RecipeLocaleContent } from '../domain/types.js';
 
@@ -48,9 +50,23 @@ export async function renderRecipe(recipeId: string): Promise<void> {
   // unrelated locale's failure.
   const newlyPublishedThisAttempt: Array<{ locale: string; slug: string }> = [];
 
+  // Slug generation is deterministic (name + recipeId) and needs no DB round-trip per locale, so
+  // every locale's slug can be computed upfront — this drives the locale-switcher links rendered
+  // into each locale's own page, including ones not yet reached by this loop.
+  const slugByLocale = new Map<string, string>();
+  for (const [locale, content] of Object.entries(recipe.locales) as Array<[string, RecipeLocaleContent]>) {
+    slugByLocale.set(locale, recipeSlug(content.name, recipeId));
+  }
+  const localeLinks: LocaleLink[] = SUPPORTED_LOCALES.map((locale) => {
+    const slug = slugByLocale.get(locale);
+    return { locale, label: locale.toUpperCase(), href: slug ? `/${locale}/recipes/${slug}.html` : null };
+  });
+  const category = recipe.categoryId ? await getCategoryById(recipe.categoryId) : null;
+  const categoryLink = category ? { name: category.displayName, slug: slugify(category.displayName) } : null;
+
   try {
     for (const [locale, content] of Object.entries(recipe.locales) as Array<[string, RecipeLocaleContent]>) {
-      const slug = recipeSlug(content.name, recipeId);
+      const slug = slugByLocale.get(locale)!;
       const stepsHtml = recipe.stepsOrder.map((stepId) => renderRichText(content.steps[stepId] ?? { type: 'doc', content: [] }));
       const ingredientGroups = recipe.ingredientGroups.map((group) => ({
         name: content.groupNames[group.groupId] ?? null,
@@ -65,6 +81,8 @@ export async function renderRecipe(recipeId: string): Promise<void> {
         description: content.description,
         ingredientGroups,
         stepsHtml,
+        category: categoryLink,
+        locales: localeLinks,
       });
 
       // A rename changes the slug — the previous page (keyed by this recipe's own prior

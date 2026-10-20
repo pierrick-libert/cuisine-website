@@ -1,0 +1,13 @@
+{% macro localeSwitcher(locales, currentLocale) %}
+{% if locales.length %}
+<div class="locale-switcher">
+  {% for link in locales %}
+    {% if link.href %}
+      <a class="locale-pill{% if link.locale == currentLocale %} active{% endif %}" href="{{ link.href }}">{{ link.label }}</a>
+    {% else %}
+      <span class="locale-pill disabled">{{ link.label }}</span>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+{% endmacro %}

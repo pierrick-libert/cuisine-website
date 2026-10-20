@@ -18,6 +18,16 @@ const TEMPLATES_DIR = process.env.LAMBDA_TASK_ROOT
   ? path.join(process.env.LAMBDA_TASK_ROOT, 'templates')
   : path.join(currentDir, '..', 'templates');
 
+/**
+ * One entry in a locale switcher. `href` is null when this recipe/category/page has no published
+ * page in that locale yet, so the template can render it disabled instead of a dead link.
+ */
+export interface LocaleLink {
+  locale: string;
+  label: string;
+  href: string | null;
+}
+
 export interface RecipeRenderData {
   locale: string;
   title: string;
@@ -25,6 +35,8 @@ export interface RecipeRenderData {
   ingredientGroups: Array<{ name: string | null; lines: Array<{ text: string }> }>;
   /** Each step's rich text, already rendered to HTML by `render-rich-text.ts`. */
   stepsHtml: string[];
+  category: { name: string; slug: string } | null;
+  locales: LocaleLink[];
 }
 
 /**
@@ -57,6 +69,7 @@ export interface CategoryShellRenderData {
   locale: string;
   name: string;
   slug: string;
+  locales: LocaleLink[];
 }
 
 /**
@@ -82,6 +95,7 @@ export async function renderCategoryShellPage(data: CategoryShellRenderData): Pr
 export interface HomePageRenderData {
   locale: string;
   categories: Array<{ name: string; slug: string }>;
+  locales: LocaleLink[];
 }
 
 /**

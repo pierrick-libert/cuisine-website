@@ -6,8 +6,15 @@ import { listPublishedSnapshots } from '../repository/publish-repository.js';
 import { getCategoryById, listCategories } from '../repository/category-repository.js';
 import { slugify } from '../lib/slug.js';
 import { SUPPORTED_LOCALES } from '../lib/locales.js';
-import { renderCategoryShellPage, renderHomePage } from '../../../public-site/src/render.js';
+import { renderCategoryShellPage, renderHomePage, type LocaleLink } from '../../../public-site/src/render.js';
 import type { PublishedSnapshot } from '../domain/types.js';
+
+// Categories are not yet per-locale (see resolveCategorySlug's comment below), so a category or
+// home page's locale switcher is just the same slug under a different locale segment — no
+// per-locale existence check needed, unlike a recipe page's locale switcher.
+function localeLinksFor(path: (locale: string) => string): LocaleLink[] {
+  return SUPPORTED_LOCALES.map((locale) => ({ locale, label: locale.toUpperCase(), href: path(locale) }));
+}
 
 const s3 = new S3Client({});
 const PUBLIC_BUCKET_NAME = process.env.PUBLIC_BUCKET_NAME ?? 'clp-cuisine-website-public';
@@ -150,7 +157,12 @@ export async function rebuildIndex(): Promise<void> {
       const key = `${locale}/categories/${slug}.html`;
 
       if (liveLocaleCategoryPairs.has(`${locale}::${category.categoryId}`)) {
-        const html = await renderCategoryShellPage({ locale, name: category.displayName, slug });
+        const html = await renderCategoryShellPage({
+          locale,
+          name: category.displayName,
+          slug,
+          locales: localeLinksFor((l) => `/${l}/categories/${slug}.html`),
+        });
         await s3.send(
           new PutObjectCommand({ Bucket: PUBLIC_BUCKET_NAME, Key: key, Body: html, ContentType: 'text/html' }),
         );
@@ -160,7 +172,11 @@ export async function rebuildIndex(): Promise<void> {
       }
     }
 
-    const homeHtml = await renderHomePage({ locale, categories: liveCategoriesThisLocale });
+    const homeHtml = await renderHomePage({
+      locale,
+      categories: liveCategoriesThisLocale,
+      locales: localeLinksFor((l) => `/${l}/index.html`),
+    });
     await s3.send(
       new PutObjectCommand({ Bucket: PUBLIC_BUCKET_NAME, Key: `${locale}/index.html`, Body: homeHtml, ContentType: 'text/html' }),
     );

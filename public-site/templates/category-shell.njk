@@ -1,3 +1,4 @@
+{% import "locale-switcher.njk" as switcher %}
 <!doctype html>
 <html lang="{{ category.locale }}">
 <head>
@@ -12,10 +13,12 @@
   <div class="page" x-data="categoryBrowse('{{ category.locale }}', '{{ category.slug }}')" x-init="load()">
     <div class="topbar">
       <a class="brand" href="/{{ category.locale }}/index.html">Pierrick's Sunday Kitchen</a>
+      {{ switcher.localeSwitcher(category.locales, category.locale) }}
     </div>
 
     <div class="page-header">
       <div>
+        <a class="back-link" href="/{{ category.locale }}/index.html">← All categories</a>
         <div class="eyebrow">Category</div>
         <h1>{{ category.name }}</h1>
       </div>
