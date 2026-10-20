@@ -36,6 +36,27 @@ function assertNonEmptyName(name: string): void {
 }
 
 /**
+ * Validates the optional 005-recipe-media-details fields, when present in the request.
+ *
+ * @throws {@link ValidationError} if a present-and-non-null `prepMinutes`/`cookMinutes`/
+ * `baseServings` is not a positive integer, or a present-and-non-null `coverImageUrl` is empty.
+ */
+function assertValidMediaDetails(input: RecipeInput): void {
+  for (const [field, value] of [
+    ['prepMinutes', input.prepMinutes],
+    ['cookMinutes', input.cookMinutes],
+    ['baseServings', input.baseServings],
+  ] as const) {
+    if (value != null && (!Number.isInteger(value) || value <= 0)) {
+      throw new ValidationError(`${field} must be a positive integer.`);
+    }
+  }
+  if (input.coverImageUrl != null && !input.coverImageUrl.trim()) {
+    throw new ValidationError('coverImageUrl must not be empty.');
+  }
+}
+
+/**
  * Splits the editor's denormalized request body into META structure and LOCALE text (FR-009),
  * validating each ingredient line (FR-004, FR-005) and assigning ids to any new group/line/step.
  */
@@ -112,6 +133,12 @@ function withPublishDefaults(meta: RecipeMeta): RecipeMeta {
     ...meta,
     selectedForNextPublish: meta.selectedForNextPublish ?? false,
     publishStatus: meta.publishStatus ?? 'not_published',
+    // 005-recipe-media-details: all four optional/additive, absent entirely on any recipe written
+    // before this feature existed.
+    prepMinutes: meta.prepMinutes ?? null,
+    cookMinutes: meta.cookMinutes ?? null,
+    baseServings: meta.baseServings ?? null,
+    coverImageUrl: meta.coverImageUrl ?? null,
   };
 }
 
@@ -139,6 +166,7 @@ function assembleRecipe(
  */
 export async function createRecipe(input: RecipeInput): Promise<RecipeWithLocales> {
   assertNonEmptyName(input.name);
+  assertValidMediaDetails(input);
 
   const recipeId = generateId();
   const now = new Date().toISOString();
@@ -157,6 +185,11 @@ export async function createRecipe(input: RecipeInput): Promise<RecipeWithLocale
     // 004-publish-pipeline-and: every recipe starts untoggled and unpublished.
     selectedForNextPublish: false,
     publishStatus: 'not_published',
+    // 005-recipe-media-details: all optional, `null` unless provided on create.
+    prepMinutes: input.prepMinutes ?? null,
+    cookMinutes: input.cookMinutes ?? null,
+    baseServings: input.baseServings ?? null,
+    coverImageUrl: input.coverImageUrl ?? null,
   };
 
   const transactItems: TransactWriteCommandInput['TransactItems'] = [
@@ -214,6 +247,7 @@ export async function getRecipe(recipeId: string): Promise<RecipeWithLocales | n
  */
 export async function updateRecipe(recipeId: string, input: RecipeInput): Promise<RecipeWithLocales | null> {
   assertNonEmptyName(input.name);
+  assertValidMediaDetails(input);
 
   const existing = await getRecipe(recipeId);
   if (!existing) return null;
@@ -246,6 +280,12 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
     // must not drift ahead of the last actual publish run just because the draft changed).
     selectedForNextPublish: existing.selectedForNextPublish,
     publishStatus: existing.publishStatus,
+    // 005-recipe-media-details: omitted leaves unchanged; an explicit `null` clears it (same
+    // "omitted vs. null" convention as categoryName above).
+    prepMinutes: input.prepMinutes !== undefined ? input.prepMinutes : existing.prepMinutes,
+    cookMinutes: input.cookMinutes !== undefined ? input.cookMinutes : existing.cookMinutes,
+    baseServings: input.baseServings !== undefined ? input.baseServings : existing.baseServings,
+    coverImageUrl: input.coverImageUrl !== undefined ? input.coverImageUrl : existing.coverImageUrl,
   };
 
   const transactItems: TransactWriteCommandInput['TransactItems'] = [

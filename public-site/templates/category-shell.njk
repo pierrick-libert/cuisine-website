@@ -38,6 +38,9 @@
     <div class="recipe-grid">
       <template x-for="recipe in filtered" :key="recipe.recipeId">
         <a class="recipe-card" :href="'/' + locale + '/recipes/' + recipe.slug + '.html'">
+          <template x-if="recipe.coverImageUrl">
+            <img :src="recipe.coverImageUrl" :alt="recipe.title">
+          </template>
           <h2 x-text="recipe.title"></h2>
         </a>
       </template>

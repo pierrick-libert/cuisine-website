@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { IngredientGroupEditor } from '../components/IngredientGroupEditor.js';
 import { StepsEditor } from '../components/StepsEditor.js';
 import { CategoryTagPicker } from '../components/CategoryTagPicker.js';
+import { CoverImageUpload } from '../components/CoverImageUpload.js';
 import { LocaleTabs } from '../components/LocaleTabs.js';
 import { TranslationDraftButton } from '../components/TranslationDraftButton.js';
 import {
@@ -68,6 +69,10 @@ export function RecipeEditorPage() {
   const [loading, setLoading] = useState(!isNew);
   const [categoryName, setCategoryName] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+  const [prepMinutes, setPrepMinutes] = useState<number | null>(null);
+  const [cookMinutes, setCookMinutes] = useState<number | null>(null);
+  const [baseServings, setBaseServings] = useState<number | null>(null);
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [structureGroups, setStructureGroups] = useState<RawRecipeGroup[]>([]);
   const [stepsOrder, setStepsOrder] = useState<string[]>([]);
   const [activeLocale, setActiveLocale] = useState('en');
@@ -83,6 +88,10 @@ export function RecipeEditorPage() {
       .then((raw) => {
         setCategoryName(raw.categoryName ?? '');
         setTags(raw.tags);
+        setPrepMinutes(raw.prepMinutes);
+        setCookMinutes(raw.cookMinutes);
+        setBaseServings(raw.baseServings);
+        setCoverImageUrl(raw.coverImageUrl);
         setStructureGroups(raw.ingredientGroups);
         setStepsOrder(raw.stepsOrder);
         setLocaleTexts(raw.locales);
@@ -108,6 +117,10 @@ export function RecipeEditorPage() {
         description: activeText.description,
         categoryName: categoryName || null,
         tags,
+        prepMinutes,
+        cookMinutes,
+        baseServings,
+        coverImageUrl,
         ingredientGroups: mergeGroupsForDisplay(structureGroups, activeText),
         steps: mergeStepsForDisplay(stepsOrder, activeText),
       };
@@ -243,6 +256,43 @@ export function RecipeEditorPage() {
           tags={tags}
           onTagsChange={setTags}
         />
+      </div>
+
+      <div style={cardStyle}>
+        <h2 style={{ fontSize: 15, margin: '0 0 16px' }}>Media and serving details</h2>
+        <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
+          <label style={{ fontSize: 13, fontWeight: 600, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            Prep time (min)
+            <input
+              type="number"
+              min={1}
+              value={prepMinutes ?? ''}
+              onChange={(e) => setPrepMinutes(e.target.value === '' ? null : Number(e.target.value))}
+              style={{ width: 100, padding: 8, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 13.5 }}
+            />
+          </label>
+          <label style={{ fontSize: 13, fontWeight: 600, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            Cook time (min)
+            <input
+              type="number"
+              min={1}
+              value={cookMinutes ?? ''}
+              onChange={(e) => setCookMinutes(e.target.value === '' ? null : Number(e.target.value))}
+              style={{ width: 100, padding: 8, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 13.5 }}
+            />
+          </label>
+          <label style={{ fontSize: 13, fontWeight: 600, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            Servings
+            <input
+              type="number"
+              min={1}
+              value={baseServings ?? ''}
+              onChange={(e) => setBaseServings(e.target.value === '' ? null : Number(e.target.value))}
+              style={{ width: 100, padding: 8, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 13.5 }}
+            />
+          </label>
+        </div>
+        <CoverImageUpload coverImageUrl={coverImageUrl} onChange={setCoverImageUrl} />
       </div>
 
       <div style={cardStyle}>

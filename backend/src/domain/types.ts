@@ -67,6 +67,18 @@ export interface RecipeMeta {
   selectedForNextPublish: boolean;
   /** This recipe's current actual public state, independent of the toggle above (FR-008). */
   publishStatus: PublishStatus;
+  /** Preparation time in minutes (005-recipe-media-details FR-001) — recipe-level, not per-locale. */
+  prepMinutes: number | null;
+  /** Cook/bake time in minutes (005-recipe-media-details FR-001) — recipe-level, not per-locale. */
+  cookMinutes: number | null;
+  /**
+   * The servings count the authored ingredient quantities are for — the denominator of the public
+   * site's servings-scaling multiplier (005-recipe-media-details FR-001, FR-006). `null` means no
+   * servings control is offered on the public page.
+   */
+  baseServings: number | null;
+  /** One shared cover image URL for the recipe, not per-locale (005-recipe-media-details FR-002). */
+  coverImageUrl: string | null;
 }
 
 /** An opaque Tiptap JSON document — the backend stores and returns this without inspecting it. */
@@ -162,6 +174,14 @@ export interface RecipeInput {
   tags?: string[];
   ingredientGroups?: IngredientGroupInput[];
   steps?: StepInput[];
+  /** Omitted leaves unchanged; `null` clears it (005-recipe-media-details). Recipe-level, not per-locale. */
+  prepMinutes?: number | null;
+  /** Omitted leaves unchanged; `null` clears it (005-recipe-media-details). Recipe-level, not per-locale. */
+  cookMinutes?: number | null;
+  /** Omitted leaves unchanged; `null` clears it (005-recipe-media-details). Recipe-level, not per-locale. */
+  baseServings?: number | null;
+  /** Omitted leaves unchanged; `null` clears it (005-recipe-media-details). Recipe-level, not per-locale. */
+  coverImageUrl?: string | null;
 }
 
 // --- POST /translate (003-translation-drafting) ---
@@ -209,6 +229,8 @@ export interface PublishedSnapshot {
   slug: string;
   /** The category this recipe was filed under *as actually rendered*. */
   categoryId: string | null;
+  /** The cover image URL *as actually rendered* (005-recipe-media-details FR-004). */
+  coverImageUrl: string | null;
   renderedAt: string;
 }
 

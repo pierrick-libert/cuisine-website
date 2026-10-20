@@ -83,6 +83,14 @@ export async function setPublishStatus(recipeId: string, status: PublishStatus):
   }
 }
 
+/**
+ * Defaults `coverImageUrl` on a snapshot read back from a `PUBLISHED#<locale>` item written
+ * before 005-recipe-media-details existed (004's snapshots have no such attribute at all).
+ */
+function withSnapshotDefaults(snapshot: PublishedSnapshot): PublishedSnapshot {
+  return { ...snapshot, coverImageUrl: snapshot.coverImageUrl ?? null };
+}
+
 /** Writes one locale's published-snapshot record (data-model.md's `RECIPE#<id>/PUBLISHED#<locale>`). */
 export async function putPublishedSnapshot(snapshot: PublishedSnapshot): Promise<void> {
   await docClient.send(
@@ -98,7 +106,7 @@ export async function getPublishedSnapshot(recipeId: string, locale: string): Pr
   const result = await docClient.send(new GetCommand({ TableName: TABLE_NAME, Key: publishedKey(recipeId, locale) }));
   if (!result.Item) return null;
   const { PK: _pk, SK: _sk, ...rest } = result.Item as PublishedSnapshot & { PK: string; SK: string };
-  return rest;
+  return withSnapshotDefaults(rest);
 }
 
 /** Deletes one locale's published-snapshot record (used when a recipe is unpublished). */
@@ -126,7 +134,7 @@ export async function getPublishedSnapshotsForRecipe(recipeId: string): Promise<
   );
   return (result.Items ?? []).map((item) => {
     const { PK: _pk, SK: _sk, ...rest } = item as PublishedSnapshot & { PK: string; SK: string };
-    return rest;
+    return withSnapshotDefaults(rest);
   });
 }
 
@@ -145,7 +153,7 @@ export async function listPublishedSnapshots(): Promise<PublishedSnapshot[]> {
   });
   return items.map((item) => {
     const { PK: _pk, SK: _sk, ...rest } = item as PublishedSnapshot & { PK: string; SK: string };
-    return rest;
+    return withSnapshotDefaults(rest);
   });
 }
 

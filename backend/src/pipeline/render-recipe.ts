@@ -83,6 +83,10 @@ export async function renderRecipe(recipeId: string): Promise<void> {
         stepsHtml,
         category: categoryLink,
         locales: localeLinks,
+        prepMinutes: recipe.prepMinutes,
+        cookMinutes: recipe.cookMinutes,
+        baseServings: recipe.baseServings,
+        coverImageUrl: recipe.coverImageUrl,
       });
 
       // A rename changes the slug — the previous page (keyed by this recipe's own prior
@@ -110,6 +114,7 @@ export async function renderRecipe(recipeId: string): Promise<void> {
         title: content.name,
         slug,
         categoryId: recipe.categoryId,
+        coverImageUrl: recipe.coverImageUrl,
         renderedAt: new Date().toISOString(),
       });
       if (!previousSnapshot) newlyPublishedThisAttempt.push({ locale, slug });

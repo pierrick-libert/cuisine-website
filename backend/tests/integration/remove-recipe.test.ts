@@ -33,6 +33,7 @@ describe('removeRecipe (004, User Story 2)', () => {
       slug: 'live-recipe',
       categoryId: null,
       renderedAt: '2026-10-19T00:00:00Z',
+      coverImageUrl: null,
     });
     await setSelectedForNextPublish(recipe.recipeId, true);
     sendMock.mockClear();
@@ -61,6 +62,7 @@ describe('removeRecipe (004, User Story 2)', () => {
       slug: 'old-title',
       categoryId: null,
       renderedAt: '2026-10-19T00:00:00Z',
+      coverImageUrl: null,
     });
     // Edit the draft without republishing — the snapshot above is deliberately stale.
     await updateRecipe(recipe.recipeId, { locale: 'en', name: 'New Unpublished Title' });
@@ -83,6 +85,7 @@ describe('removeRecipe (004, User Story 2)', () => {
       slug: 'will-fail-to-unpublish',
       categoryId: null,
       renderedAt: '2026-10-19T00:00:00Z',
+      coverImageUrl: null,
     });
     await setSelectedForNextPublish(recipe.recipeId, true);
     sendMock.mockClear();
@@ -106,6 +109,7 @@ describe('removeRecipe (004, User Story 2)', () => {
         slug: 'handler-shape-unpublish',
         categoryId: null,
         renderedAt: '2026-10-19T00:00:00Z',
+        coverImageUrl: null,
       });
       await setSelectedForNextPublish(recipe.recipeId, true);
       sendMock.mockClear();

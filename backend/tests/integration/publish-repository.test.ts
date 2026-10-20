@@ -51,6 +51,7 @@ describe('publish-repository (004)', () => {
       slug: 'grandmas-apple-tart',
       categoryId: 'c-1',
       renderedAt: '2026-10-19T00:00:00Z',
+      coverImageUrl: null,
     };
 
     it('writes and lists a published snapshot', async () => {
@@ -88,6 +89,26 @@ describe('publish-repository (004)', () => {
 
       expect(result).toHaveLength(2);
       expect(result.map((s) => s.locale).sort()).toEqual(['en', 'fr']);
+    });
+
+    it('defaults coverImageUrl to null for a snapshot written before 005-recipe-media-details existed', async () => {
+      const legacyRecipeId = 'r-snap-legacy-1';
+      const { PK, SK } = { PK: `RECIPE#${legacyRecipeId}`, SK: `PUBLISHED#de` };
+      const legacyItem = {
+        PK,
+        SK,
+        recipeId: legacyRecipeId,
+        locale: 'de',
+        title: snapshot.title,
+        slug: 'legacy-slug',
+        categoryId: snapshot.categoryId,
+        renderedAt: snapshot.renderedAt,
+        // No coverImageUrl attribute at all — 004's exact shape.
+      };
+      await putPublishedSnapshot(legacyItem as unknown as PublishedSnapshot);
+
+      expect((await getPublishedSnapshot(legacyRecipeId, 'de'))?.coverImageUrl).toBeNull();
+      expect((await listPublishedSnapshots()).find((s) => s.locale === 'de' && s.recipeId === legacyRecipeId)?.coverImageUrl).toBeNull();
     });
   });
 

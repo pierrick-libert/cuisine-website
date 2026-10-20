@@ -74,6 +74,14 @@ export interface RecipeInput {
   description?: string;
   categoryName?: string | null;
   tags?: string[];
+  /** Omitted leaves unchanged; `null` clears it (005-recipe-media-details). Recipe-level, not per-locale. */
+  prepMinutes?: number | null;
+  /** Omitted leaves unchanged; `null` clears it (005-recipe-media-details). Recipe-level, not per-locale. */
+  cookMinutes?: number | null;
+  /** Omitted leaves unchanged; `null` clears it (005-recipe-media-details). Recipe-level, not per-locale. */
+  baseServings?: number | null;
+  /** Omitted leaves unchanged; `null` clears it (005-recipe-media-details). Recipe-level, not per-locale. */
+  coverImageUrl?: string | null;
   ingredientGroups?: Array<{
     groupId?: string;
     name: string;
@@ -126,6 +134,14 @@ export interface RawRecipe {
   ingredientGroups: RawRecipeGroup[];
   stepsOrder: string[];
   locales: Record<string, RawLocaleContent>;
+  /** Recipe-level, not per-locale (005-recipe-media-details). */
+  prepMinutes: number | null;
+  /** Recipe-level, not per-locale (005-recipe-media-details). */
+  cookMinutes: number | null;
+  /** Recipe-level, not per-locale (005-recipe-media-details). */
+  baseServings: number | null;
+  /** Recipe-level, not per-locale (005-recipe-media-details). */
+  coverImageUrl: string | null;
 }
 
 /**

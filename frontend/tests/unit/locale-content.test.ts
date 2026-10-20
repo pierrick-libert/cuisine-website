@@ -8,6 +8,10 @@ function fixture(): RawRecipe {
     categoryId: null,
     categoryName: null,
     tags: [],
+    prepMinutes: null,
+    cookMinutes: null,
+    baseServings: null,
+    coverImageUrl: null,
     ingredientGroups: [
       {
         groupId: 'g1',
