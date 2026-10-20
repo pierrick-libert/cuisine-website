@@ -27,6 +27,14 @@
       </div>
     </div>
 
+    {% if category.categories.length %}
+    <div class="category-nav">
+      {% for cat in category.categories %}
+        <a class="category-pill{% if cat.slug == category.slug %} active{% endif %}" href="/{{ category.locale }}/categories/{{ cat.slug }}.html">{{ cat.name }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="recipe-grid">
       <template x-for="recipe in filtered" :key="recipe.recipeId">
         <a class="recipe-card" :href="'/' + locale + '/recipes/' + recipe.slug + '.html'">
