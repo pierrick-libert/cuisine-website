@@ -114,6 +114,7 @@ describe('renderCategoryShellPage (004, User Story 4)', () => {
       name: 'Desserts',
       slug: 'desserts',
       locales: [],
+      categories: [],
     });
 
     expect(html).toContain('<html lang="en">');
@@ -130,10 +131,30 @@ describe('renderCategoryShellPage (004, User Story 4)', () => {
         { locale: 'en', label: 'EN', href: '/en/categories/desserts.html' },
         { locale: 'fr', label: 'FR', href: '/fr/categories/desserts.html' },
       ],
+      categories: [],
     });
 
     expect(html).toContain('/fr/categories/desserts.html');
     expect(html).toContain('FR');
+  });
+
+  it('renders a cross-category nav linking every other live category, marking the current one active', async () => {
+    const html = await renderCategoryShellPage({
+      locale: 'en',
+      name: 'Desserts',
+      slug: 'desserts',
+      locales: [],
+      categories: [
+        { name: 'Mains', slug: 'mains' },
+        { name: 'Desserts', slug: 'desserts' },
+      ],
+    });
+
+    expect(html).toContain('/en/categories/mains.html');
+    // The current category's own nav link and the hero back-link are separate elements, so a
+    // plain toContain on the slug isn't enough to prove the active state — check the active class
+    // sits next to the current category's slug specifically.
+    expect(html).toMatch(/category-pill active"[^>]*href="\/en\/categories\/desserts\.html"/);
   });
 });
 

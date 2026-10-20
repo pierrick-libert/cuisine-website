@@ -70,6 +70,8 @@ export interface CategoryShellRenderData {
   name: string;
   slug: string;
   locales: LocaleLink[];
+  /** Every category currently live in this locale, for a cross-category nav (not just this one). */
+  categories: Array<{ name: string; slug: string }>;
 }
 
 /**

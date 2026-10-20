@@ -196,6 +196,19 @@ button, input { font-family: inherit; }
 }
 .category-list a:hover { background: var(--accent, #5C7A52); color: oklch(99% 0.006 145); border-color: var(--accent, #5C7A52); }
 
+/* Cross-category nav (category shell pages) */
+.category-nav { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
+.category-pill {
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: oklch(99% 0.012 145);
+  color: oklch(40% 0.006 145);
+  border: 1px solid oklch(87% 0.014 145);
+}
+.category-pill.active { background: var(--accent, #5C7A52); color: oklch(99% 0.006 145); border-color: var(--accent, #5C7A52); }
+
 /* Recipe card grid (category shells and home-page search results) */
 .recipe-grid {
   display: grid;

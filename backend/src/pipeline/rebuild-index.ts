@@ -150,7 +150,11 @@ export async function rebuildIndex(): Promise<void> {
   // knowing its direct URL).
   const allCategories = await listCategories();
   for (const locale of localesToRebuild) {
-    const liveCategoriesThisLocale: Array<{ name: string; slug: string }> = [];
+    // Computed up front, not accumulated during the shell-render loop below, so every shell's
+    // cross-category nav (not just categories rendered before it) can link every live category.
+    const liveCategoriesThisLocale = allCategories
+      .filter((category) => liveLocaleCategoryPairs.has(`${locale}::${category.categoryId}`))
+      .map((category) => ({ name: category.displayName, slug: slugify(category.displayName) }));
 
     for (const category of allCategories) {
       const slug = slugify(category.displayName);
@@ -162,11 +166,11 @@ export async function rebuildIndex(): Promise<void> {
           name: category.displayName,
           slug,
           locales: localeLinksFor((l) => `/${l}/categories/${slug}.html`),
+          categories: liveCategoriesThisLocale,
         });
         await s3.send(
           new PutObjectCommand({ Bucket: PUBLIC_BUCKET_NAME, Key: key, Body: html, ContentType: 'text/html' }),
         );
-        liveCategoriesThisLocale.push({ name: category.displayName, slug });
       } else {
         await s3.send(new DeleteObjectCommand({ Bucket: PUBLIC_BUCKET_NAME, Key: key }));
       }
